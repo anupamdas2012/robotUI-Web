@@ -99,12 +99,22 @@ button:hover {
   background: #555;
 }
 
+/* Telemetry panel */
+#telemetryPanel {
+  max-width: 80vw;
+  margin: 0 auto 16px;
+  background: #141428;
+  border: 1px solid #2a2a3e;
+  border-radius: 12px;
+  padding: 16px;
+  overflow: visible;
+}
+
 /* Chart grid */
 #chartGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  margin-bottom: 16px;
 }
 
 @media (max-width: 768px) {
