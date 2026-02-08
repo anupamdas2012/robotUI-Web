@@ -38,8 +38,8 @@ button:hover {
   align-items: center;
   gap: 16px;
   padding: 10px 16px;
-  background: #1a1a2e;
-  border-bottom: 1px solid #2a2a3e;
+  background: #1e1e1e;
+  border-bottom: 1px solid #333;
 }
 
 .topbar-status {
@@ -102,9 +102,9 @@ button:hover {
 /* Telemetry panel */
 #telemetryPanel {
   max-width: 80vw;
-  margin: 0 auto 16px;
-  background: #141428;
-  border: 1px solid #2a2a3e;
+  margin: 24px auto 16px;
+  background: #1e1e1e;
+  border: 1px solid #333;
   border-radius: 12px;
   padding: 16px;
   overflow: visible;
@@ -171,8 +171,8 @@ button:hover {
   display: flex;
   align-items: center;
   padding: 10px 16px;
-  background: #1a1a2e;
-  border-top: 1px solid #2a2a3e;
+  background: #1e1e1e;
+  border-top: 1px solid #333;
 }
 
 .bottombar-pills {
