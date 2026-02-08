@@ -38,7 +38,7 @@ button:hover {
   align-items: center;
   gap: 16px;
   padding: 10px 16px;
-  background: #181818;
+  background: #1e1e1e;
   border-bottom: 1px solid #333;
 }
 
@@ -103,7 +103,7 @@ button:hover {
 #telemetryPanel {
   max-width: 80vw;
   margin: 24px auto 16px;
-  background: #181818;
+  background: #1e1e1e;
   border: 1px solid #333;
   border-radius: 12px;
   padding: 16px;
@@ -130,7 +130,7 @@ button:hover {
 }
 
 .chart-card {
-  background: #202020;
+  background: #262626;
   border: 1px solid #3a3350;
   box-shadow: 0 0 6px rgba(90, 60, 140, 0.2);
   border-radius: 8px;
