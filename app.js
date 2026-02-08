@@ -41,7 +41,7 @@ const valLoopMax = document.getElementById('valLoopMax');
 
 // Chart.js defaults for dark theme
 Chart.defaults.color = '#888';
-Chart.defaults.borderColor = '#2a2a3e';
+Chart.defaults.borderColor = '#2a2a2a';
 
 function createChart(canvasId, datasets, yLabel) {
   return new Chart(document.getElementById(canvasId), {
