@@ -270,3 +270,43 @@ connectBtn.addEventListener('click', () => {
 clearBtn.addEventListener('click', () => {
   consoleEl.textContent = '';
 });
+
+// Console dialog toggle
+const consolePill = document.getElementById('consolePill');
+const consoleDialog = document.getElementById('consoleDialog');
+const consoleCloseBtn = document.getElementById('consoleCloseBtn');
+
+consolePill.addEventListener('click', () => {
+  consoleDialog.classList.toggle('hidden');
+  consolePill.classList.toggle('active');
+});
+
+consoleCloseBtn.addEventListener('click', () => {
+  consoleDialog.classList.add('hidden');
+  consolePill.classList.remove('active');
+});
+
+// Drag to reposition console dialog
+const consoleHeader = consoleDialog.querySelector('.console-dialog-header');
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+let isDragging = false;
+
+consoleHeader.addEventListener('mousedown', (e) => {
+  if (e.target.closest('button')) return;
+  isDragging = true;
+  dragOffsetX = e.clientX - consoleDialog.offsetLeft;
+  dragOffsetY = e.clientY - consoleDialog.offsetTop;
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  consoleDialog.style.left = (e.clientX - dragOffsetX) + 'px';
+  consoleDialog.style.top = (e.clientY - dragOffsetY) + 'px';
+  consoleDialog.style.right = 'auto';
+  consoleDialog.style.bottom = 'auto';
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+});

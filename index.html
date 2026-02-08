@@ -72,10 +72,21 @@
     </div>
   </div>
 
-  <div id="consoleSection">
-    <div class="console-header">
+  <nav id="bottomBar">
+    <div class="bottombar-pills">
+      <div class="status-pill console-pill" id="consolePill">
+        <span>Serial Console</span>
+      </div>
+    </div>
+  </nav>
+
+  <div id="consoleDialog" class="console-dialog hidden">
+    <div class="console-dialog-header">
       <h2>Serial Console</h2>
-      <button id="clearBtn">Clear</button>
+      <div class="console-dialog-actions">
+        <button id="clearBtn">Clear</button>
+        <button class="close-btn" id="consoleCloseBtn">&times;</button>
+      </div>
     </div>
     <pre id="console"></pre>
   </div>
