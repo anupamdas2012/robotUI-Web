@@ -61,7 +61,7 @@ function createChart(canvasId, datasets, yLabel) {
     options: {
       animation: false,
       responsive: true,
-      maintainAspectRatio: true,
+      maintainAspectRatio: false,
       interaction: { intersect: false, mode: 'index' },
       plugins: { legend: { display: datasets.length > 1, labels: { boxWidth: 12 } } },
       scales: {

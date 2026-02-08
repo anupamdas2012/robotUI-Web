@@ -133,6 +133,13 @@ button:hover {
   background: #1a1a2e;
   border-radius: 8px;
   padding: 16px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.chart-card canvas {
+  width: 100% !important;
+  height: 320px !important;
 }
 
 .chart-header {
