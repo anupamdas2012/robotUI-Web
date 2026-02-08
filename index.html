@@ -8,25 +8,23 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>Pico 2 Motor Dashboard</h1>
+  <nav id="topBar">
+    <div class="topbar-status">
+      <div class="status-pill">
+        <span class="dot dot-gray" id="dotMotors"></span>
+        <span>Motors</span>
+      </div>
+      <div class="status-pill">
+        <span class="dot dot-gray" id="dotIMU"></span>
+        <span>IMU</span>
+      </div>
+      <div class="status-pill">
+        <span class="dot dot-gray" id="dotToF"></span>
+        <span>ToF</span>
+      </div>
+    </div>
     <button id="connectBtn">Connect</button>
-  </header>
-
-  <div id="statusBar">
-    <div class="status-item">
-      <span class="dot dot-gray" id="dotMotors"></span>
-      <span>Motors</span>
-    </div>
-    <div class="status-item">
-      <span class="dot dot-gray" id="dotIMU"></span>
-      <span>IMU</span>
-    </div>
-    <div class="status-item">
-      <span class="dot dot-gray" id="dotToF"></span>
-      <span>ToF</span>
-    </div>
-  </div>
+  </nav>
 
   <div id="chartGrid">
     <div class="chart-card">
