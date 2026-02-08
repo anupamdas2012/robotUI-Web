@@ -132,6 +132,7 @@ button:hover {
 .chart-card {
   background: #202020;
   border: 1px solid #3a3350;
+  box-shadow: 0 0 6px rgba(90, 60, 140, 0.2);
   border-radius: 8px;
   padding: 16px;
   min-width: 0;
