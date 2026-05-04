@@ -177,6 +177,15 @@ button:hover {
 .chart-card canvas {
   width: 100% !important;
   height: 320px !important;
+  cursor: default;
+}
+
+.chart-card.paused canvas {
+  cursor: grab;
+}
+
+.chart-card.paused canvas:active {
+  cursor: grabbing;
 }
 
 .chart-header {

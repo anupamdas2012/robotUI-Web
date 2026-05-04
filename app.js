@@ -231,12 +231,17 @@ function stopDisconnectWatcher() {
 function setPaused(next) {
   paused = next;
   for (const id of Object.keys(plots)) plots[id].setPaused(paused);
+  // On resume, clear any zoom so charts return to following the live tail.
+  // Without this, new data plots off-screen of the locked zoom range.
+  if (!paused) resetAllZoom();
   pauseBtn.textContent = paused ? '▶ Resume' : '⏸ Pause';
   pauseBtn.classList.toggle('active', paused);
 }
 
 function resetAllZoom() {
-  for (const id of Object.keys(plots)) plots[id].resetZoom();
+  // Bulk reset — pass emit:false so plots don't sync each other's
+  // just-reset range as a new fixed window.
+  for (const id of Object.keys(plots)) plots[id].resetZoom({ emit: false });
 }
 
 pauseBtn.addEventListener('click', () => setPaused(!paused));

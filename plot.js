@@ -96,14 +96,16 @@ class Plot {
             labels: { boxWidth: 12 },
           },
           zoom: {
+            // Zoom/pan are gated on paused state — see _setInteractionEnabled.
+            // Live mode tracks the tail; analysis only happens while paused.
             pan: {
-              enabled: true,
+              enabled: false,
               mode: 'x',
               onPanComplete: ({ chart }) => this._emitZoomEvent(chart),
             },
             zoom: {
-              wheel: { enabled: true },
-              pinch: { enabled: true },
+              wheel: { enabled: false },
+              pinch: { enabled: false },
               mode: 'x',
               onZoomComplete: ({ chart }) => this._emitZoomEvent(chart),
             },
@@ -161,14 +163,26 @@ class Plot {
     if (this.paused === paused) return;
     this.paused = paused;
     this.cardElement.classList.toggle('paused', paused);
+    this._setInteractionEnabled(paused);
     if (!paused) this._redraw();
   }
 
-  resetZoom() {
+  _setInteractionEnabled(enabled) {
+    const z = this.chart.options.plugins.zoom;
+    z.zoom.wheel.enabled = enabled;
+    z.zoom.pinch.enabled = enabled;
+    z.pan.enabled = enabled;
+    this.chart.update('none');
+  }
+
+  resetZoom({ emit = true } = {}) {
     this._suppressZoomEvent = true;
     this.chart.resetZoom('none');
     this._suppressZoomEvent = false;
-    this._emitZoomEvent(this.chart);
+    // emit=false used for bulk resets where the caller is touching every plot
+    // already; otherwise siblings would receive the just-reset range as a new
+    // fixed window, defeating the point.
+    if (emit) this._emitZoomEvent(this.chart);
   }
 
   onZoomChanged(cb) {
