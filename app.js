@@ -1,109 +1,131 @@
 // Web Serial Dashboard for Pico 2 Motor Control
+//
+// Architecture:
+//   - Plot   (plot.js)   owns one card: DOM, Chart.js, ring buffer, pause, zoom
+//   - app.js                wires connection + parser + blueprint + sync
+//
+// Adding a metric is a one-entry change to BLUEPRINT plus a one-line route in
+// ROUTES.
 
 const MAX_POINTS = 200;
 const MAX_CONSOLE_LINES = 500;
 const DISCONNECT_TIMEOUT_MS = 2000;
 
-// State
+// Chart.js defaults for dark theme.
+Chart.defaults.color = '#888';
+Chart.defaults.borderColor = '#2a2a2a';
+
+// =============================================================================
+// Blueprint — declarative plot definitions
+// =============================================================================
+
+const BLUEPRINT = [
+  {
+    id: 'rpm',
+    title: 'Motor RPM',
+    series: [
+      { label: 'L', color: '#4cc9f0' },
+      { label: 'R', color: '#f72585' },
+    ],
+  },
+  {
+    id: 'tof',
+    title: 'ToF Distance',
+    series: [
+      {
+        label: 'Distance',
+        color: '#4ade80',
+        format: (label, v) => (v == null ? `${label}: --` : `${v.toFixed(0)} mm`),
+      },
+    ],
+  },
+  {
+    id: 'imu',
+    title: 'IMU Orientation',
+    series: [
+      { label: 'H', color: '#f59e0b' },
+      { label: 'P', color: '#4cc9f0' },
+      { label: 'R', color: '#f72585' },
+    ],
+  },
+  {
+    id: 'loop',
+    title: 'Loop Timing (µs)',
+    series: [
+      { label: 'Avg', color: '#8b5cf6', format: (label, v) => (v == null ? `${label}: --` : `${label}: ${v|0}us`) },
+      { label: 'Max', color: '#ef4444', format: (label, v) => (v == null ? `${label}: --` : `${label}: ${v|0}us`) },
+    ],
+  },
+];
+
+// =============================================================================
+// Plot instantiation + cross-plot zoom sync
+// =============================================================================
+
+const chartGrid = document.getElementById('chartGrid');
+const plots = {};
+for (const spec of BLUEPRINT) {
+  plots[spec.id] = new Plot({
+    id: spec.id,
+    title: spec.title,
+    series: spec.series,
+    container: chartGrid,
+    maxPoints: MAX_POINTS,
+  });
+}
+
+// When the user zooms or pans one plot, mirror the X range on every sibling.
+for (const id of Object.keys(plots)) {
+  plots[id].onZoomChanged(({ xMin, xMax, source }) => {
+    for (const otherId of Object.keys(plots)) {
+      if (otherId === id) continue;
+      plots[otherId].setVisibleRange(xMin, xMax);
+    }
+  });
+}
+
+// =============================================================================
+// Routes — map a $-prefix message to plot.push() calls
+// =============================================================================
+
+const ROUTES = {
+  $MOT: (parts) => {
+    plots.rpm.push([parseFloat(parts[1]), parseFloat(parts[2])]);
+    plots.loop.push([parseInt(parts[5], 10), parseInt(parts[6], 10)]);
+  },
+  $IMU: (parts) => {
+    plots.imu.push([parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3])]);
+  },
+  $TOF: (parts) => {
+    const valid = parts[2] === '1';
+    plots.tof.push([valid ? parseInt(parts[1], 10) : null]);
+  },
+  $STA: (parts) => {
+    setDot(dotMotors, 'on');
+    setDot(dotIMU, parts[1] === '1' ? 'on' : 'off');
+    setDot(dotToF, parts[2] === '1' ? 'on' : 'off');
+  },
+};
+
+// =============================================================================
+// Serial connection + line parser
+// =============================================================================
+
 let port = null;
 let reader = null;
 let lastDataTime = 0;
 let disconnectTimer = null;
 let lineBuf = '';
+let paused = false;
 
-// Chart data arrays
-const data = {
-  rpmL: [], rpmR: [],
-  tofDist: [],
-  heading: [], pitch: [], roll: [],
-  loopAvg: [], loopMax: [],
-  labels: []
-};
-let sampleIndex = 0;
-
-// DOM elements
 const connectBtn = document.getElementById('connectBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetZoomBtn = document.getElementById('resetZoomBtn');
 const clearBtn = document.getElementById('clearBtn');
 const consoleEl = document.getElementById('console');
 const dotMotors = document.getElementById('dotMotors');
 const dotIMU = document.getElementById('dotIMU');
 const dotToF = document.getElementById('dotToF');
-
-// Current value displays
-const valRpmL = document.getElementById('valRpmL');
-const valRpmR = document.getElementById('valRpmR');
-const valToF = document.getElementById('valToF');
-const valHeading = document.getElementById('valHeading');
-const valPitch = document.getElementById('valPitch');
-const valRoll = document.getElementById('valRoll');
-const valLoopAvg = document.getElementById('valLoopAvg');
-const valLoopMax = document.getElementById('valLoopMax');
-
-// Chart.js defaults for dark theme
-Chart.defaults.color = '#888';
-Chart.defaults.borderColor = '#2a2a2a';
-
-function createChart(canvasId, datasets, yLabel) {
-  return new Chart(document.getElementById(canvasId), {
-    type: 'line',
-    data: {
-      labels: [],
-      datasets: datasets.map(ds => ({
-        label: ds.label,
-        data: [],
-        borderColor: ds.color,
-        backgroundColor: 'transparent',
-        borderWidth: 1.5,
-        pointRadius: 0,
-        tension: 0.2
-      }))
-    },
-    options: {
-      animation: false,
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { intersect: false, mode: 'index' },
-      plugins: { legend: { display: datasets.length > 1, labels: { boxWidth: 12 } } },
-      scales: {
-        x: { display: false },
-        y: { title: { display: !!yLabel, text: yLabel, font: { size: 11 } }, beginAtZero: false }
-      }
-    }
-  });
-}
-
-const chartRPM = createChart('chartRPM', [
-  { label: 'Left', color: '#4cc9f0' },
-  { label: 'Right', color: '#f72585' }
-], 'RPM');
-
-const chartToF = createChart('chartToF', [
-  { label: 'Distance', color: '#4ade80' }
-], 'mm');
-
-const chartIMU = createChart('chartIMU', [
-  { label: 'Heading', color: '#f59e0b' },
-  { label: 'Pitch', color: '#4cc9f0' },
-  { label: 'Roll', color: '#f72585' }
-], 'degrees');
-
-const chartLoop = createChart('chartLoop', [
-  { label: 'Avg', color: '#8b5cf6' },
-  { label: 'Max', color: '#ef4444' }
-], 'us');
-
-function pushData(arr, val) {
-  arr.push(val);
-  if (arr.length > MAX_POINTS) arr.shift();
-}
-
-function updateChart(chart, ...dataArrays) {
-  chart.data.labels = data.labels.slice(-MAX_POINTS);
-  dataArrays.forEach((arr, i) => {
-    chart.data.datasets[i].data = arr.slice(-MAX_POINTS);
-  });
-  chart.update('none');
-}
 
 function setDot(el, state) {
   el.className = 'dot ' + (state === 'on' ? 'dot-green' : state === 'off' ? 'dot-red' : 'dot-gray');
@@ -119,71 +141,13 @@ function appendConsole(line) {
 }
 
 function parseLine(line) {
-  if (!line.startsWith('$')) {
-    appendConsole(line);
-    return;
-  }
-
   appendConsole(line);
+  if (!line.startsWith('$')) return;
+
   lastDataTime = Date.now();
-
   const parts = line.split(',');
-  const type = parts[0];
-
-  if (type === '$STA') {
-    const imuConn = parts[1] === '1';
-    const tofConn = parts[2] === '1';
-    setDot(dotMotors, 'on');
-    setDot(dotIMU, imuConn ? 'on' : 'off');
-    setDot(dotToF, tofConn ? 'on' : 'off');
-  } else if (type === '$MOT') {
-    const rpmL = parseFloat(parts[1]);
-    const rpmR = parseFloat(parts[2]);
-    const loopAvg = parseInt(parts[5]);
-    const loopMax = parseInt(parts[6]);
-
-    sampleIndex++;
-    pushData(data.labels, sampleIndex);
-    pushData(data.rpmL, rpmL);
-    pushData(data.rpmR, rpmR);
-    pushData(data.loopAvg, loopAvg);
-    pushData(data.loopMax, loopMax);
-
-    valRpmL.textContent = 'L: ' + rpmL.toFixed(1);
-    valRpmR.textContent = 'R: ' + rpmR.toFixed(1);
-    valLoopAvg.textContent = 'Avg: ' + loopAvg + 'us';
-    valLoopMax.textContent = 'Max: ' + loopMax + 'us';
-
-    updateChart(chartRPM, data.rpmL, data.rpmR);
-    updateChart(chartLoop, data.loopAvg, data.loopMax);
-  } else if (type === '$IMU') {
-    const h = parseFloat(parts[1]);
-    const p = parseFloat(parts[2]);
-    const r = parseFloat(parts[3]);
-
-    pushData(data.heading, h);
-    pushData(data.pitch, p);
-    pushData(data.roll, r);
-
-    valHeading.textContent = 'H: ' + h.toFixed(1);
-    valPitch.textContent = 'P: ' + p.toFixed(1);
-    valRoll.textContent = 'R: ' + r.toFixed(1);
-
-    updateChart(chartIMU, data.heading, data.pitch, data.roll);
-  } else if (type === '$TOF') {
-    const dist = parseInt(parts[1]);
-    const valid = parts[2] === '1';
-
-    if (valid) {
-      pushData(data.tofDist, dist);
-      valToF.textContent = dist + ' mm';
-    } else {
-      pushData(data.tofDist, null);
-      valToF.textContent = '-- mm';
-    }
-
-    updateChart(chartToF, data.tofDist);
-  }
+  const route = ROUTES[parts[0]];
+  if (route) route(parts);
 }
 
 async function connect() {
@@ -221,10 +185,8 @@ async function disconnect() {
 
 async function readLoop() {
   const decoder = new TextDecoderStream();
-  const inputDone = port.readable.pipeTo(decoder.writable);
-  const inputStream = decoder.readable;
-  reader = inputStream.getReader();
-
+  port.readable.pipeTo(decoder.writable);
+  reader = decoder.readable.getReader();
   try {
     while (true) {
       const { value, done } = await reader.read();
@@ -232,9 +194,9 @@ async function readLoop() {
       if (value) {
         lineBuf += value;
         const lines = lineBuf.split('\n');
-        lineBuf = lines.pop(); // keep incomplete line in buffer
-        for (const line of lines) {
-          const trimmed = line.replace(/\r$/, '');
+        lineBuf = lines.pop();
+        for (const raw of lines) {
+          const trimmed = raw.replace(/\r$/, '');
           if (trimmed.length > 0) parseLine(trimmed);
         }
       }
@@ -262,6 +224,33 @@ function stopDisconnectWatcher() {
   }
 }
 
+// =============================================================================
+// Pause + reset zoom
+// =============================================================================
+
+function setPaused(next) {
+  paused = next;
+  for (const id of Object.keys(plots)) plots[id].setPaused(paused);
+  pauseBtn.textContent = paused ? '▶ Resume' : '⏸ Pause';
+  pauseBtn.classList.toggle('active', paused);
+}
+
+function resetAllZoom() {
+  for (const id of Object.keys(plots)) plots[id].resetZoom();
+}
+
+pauseBtn.addEventListener('click', () => setPaused(!paused));
+resetZoomBtn.addEventListener('click', resetAllZoom);
+
+// Spacebar toggles pause when not focused on an input or button.
+document.addEventListener('keydown', (e) => {
+  if (e.code !== 'Space') return;
+  const tag = (document.activeElement && document.activeElement.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+  e.preventDefault();
+  setPaused(!paused);
+});
+
 connectBtn.addEventListener('click', () => {
   if (port) disconnect();
   else connect();
@@ -271,7 +260,10 @@ clearBtn.addEventListener('click', () => {
   consoleEl.textContent = '';
 });
 
-// Console dialog toggle
+// =============================================================================
+// Console dialog (unchanged behavior — toggle, drag to reposition)
+// =============================================================================
+
 const consolePill = document.getElementById('consolePill');
 const consoleDialog = document.getElementById('consoleDialog');
 const consoleCloseBtn = document.getElementById('consoleCloseBtn');
@@ -286,7 +278,6 @@ consoleCloseBtn.addEventListener('click', () => {
   consolePill.classList.remove('active');
 });
 
-// Drag to reposition console dialog
 const consoleHeader = consoleDialog.querySelector('.console-dialog-header');
 let dragOffsetX = 0;
 let dragOffsetY = 0;

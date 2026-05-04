@@ -46,11 +46,39 @@ button:hover {
   display: flex;
   gap: 10px;
   flex-shrink: 0;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
   margin-left: auto;
 }
 
 #topBar #connectBtn {
   flex-shrink: 0;
+}
+
+.topbar-btn {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  background: #2d2d44;
+  border: 1px solid #444;
+  border-radius: 6px;
+  color: #e0e0e0;
+  cursor: pointer;
+}
+
+.topbar-btn:hover {
+  background: #3d3d5c;
+}
+
+.topbar-btn.active {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
 }
 
 .status-pill {
@@ -137,6 +165,13 @@ button:hover {
   padding: 16px;
   min-width: 0;
   overflow: hidden;
+  position: relative;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.chart-card.paused {
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
 }
 
 .chart-card canvas {

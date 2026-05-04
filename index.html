@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pico 2 Motor Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,55 +25,15 @@
         <span>ToF</span>
       </div>
     </div>
-    <button id="connectBtn">Connect</button>
+    <div class="topbar-actions">
+      <button id="pauseBtn" class="topbar-btn" title="Pause / Resume (space)">⏸ Pause</button>
+      <button id="resetZoomBtn" class="topbar-btn" title="Reset zoom (double-click any chart)">⤢ Reset</button>
+      <button id="connectBtn">Connect</button>
+    </div>
   </nav>
 
   <div id="telemetryPanel">
-  <div id="chartGrid">
-    <div class="chart-card">
-      <div class="chart-header">
-        <h2>Motor RPM</h2>
-        <div class="current-values">
-          <span class="val-cyan" id="valRpmL">L: --</span>
-          <span class="val-pink" id="valRpmR">R: --</span>
-        </div>
-      </div>
-      <canvas id="chartRPM"></canvas>
-    </div>
-
-    <div class="chart-card">
-      <div class="chart-header">
-        <h2>ToF Distance</h2>
-        <div class="current-values">
-          <span class="val-green" id="valToF">-- mm</span>
-        </div>
-      </div>
-      <canvas id="chartToF"></canvas>
-    </div>
-
-    <div class="chart-card">
-      <div class="chart-header">
-        <h2>IMU Orientation</h2>
-        <div class="current-values">
-          <span class="val-amber" id="valHeading">H: --</span>
-          <span class="val-cyan" id="valPitch">P: --</span>
-          <span class="val-pink" id="valRoll">R: --</span>
-        </div>
-      </div>
-      <canvas id="chartIMU"></canvas>
-    </div>
-
-    <div class="chart-card">
-      <div class="chart-header">
-        <h2>Loop Timing</h2>
-        <div class="current-values">
-          <span class="val-purple" id="valLoopAvg">Avg: --</span>
-          <span class="val-red" id="valLoopMax">Max: --</span>
-        </div>
-      </div>
-      <canvas id="chartLoop"></canvas>
-    </div>
-  </div>
+    <div id="chartGrid"></div>
   </div>
 
   <nav id="bottomBar">
@@ -93,6 +55,7 @@
     <pre id="console"></pre>
   </div>
 
+  <script src="plot.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
