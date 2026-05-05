@@ -249,6 +249,39 @@ document.addEventListener('mousemove', (e) => {
 
 document.addEventListener('mouseup', () => { isDragging = false; });
 
+// Custom resize for the console dialog (we disabled native `resize: both`
+// to get a larger custom cursor + larger hit zone).
+const consoleResizeHandle = document.getElementById('consoleResizeHandle');
+let resizeStart = null;
+
+consoleResizeHandle.addEventListener('pointerdown', (e) => {
+  const rect = consoleDialog.getBoundingClientRect();
+  resizeStart = {
+    startX: e.clientX,
+    startY: e.clientY,
+    startWidth: rect.width,
+    startHeight: rect.height,
+  };
+  consoleResizeHandle.setPointerCapture(e.pointerId);
+  e.preventDefault();
+});
+
+consoleResizeHandle.addEventListener('pointermove', (e) => {
+  if (!resizeStart) return;
+  const dx = e.clientX - resizeStart.startX;
+  const dy = e.clientY - resizeStart.startY;
+  const w = Math.max(300, resizeStart.startWidth + dx);
+  const h = Math.max(180, resizeStart.startHeight + dy);
+  consoleDialog.style.width = w + 'px';
+  consoleDialog.style.height = h + 'px';
+});
+
+consoleResizeHandle.addEventListener('pointerup', (e) => {
+  if (!resizeStart) return;
+  resizeStart = null;
+  try { consoleResizeHandle.releasePointerCapture(e.pointerId); } catch (_) {}
+});
+
 // -----------------------------------------------------------------------------
 // Boot
 // -----------------------------------------------------------------------------
