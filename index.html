@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pico 2 Dashboard</title>
+  <title>Robot Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
@@ -11,20 +11,8 @@
 </head>
 <body>
   <nav id="topBar">
-    <div class="topbar-status">
-      <div class="status-pill">
-        <span class="dot dot-gray" id="dotMotors"></span>
-        <span>Motors</span>
-      </div>
-      <div class="status-pill">
-        <span class="dot dot-gray" id="dotIMU"></span>
-        <span>IMU</span>
-      </div>
-      <div class="status-pill">
-        <span class="dot dot-gray" id="dotToF"></span>
-        <span>ToF</span>
-      </div>
-    </div>
+    <!-- Status pills are generated from the active board manifest at boot. -->
+    <div class="topbar-status" id="statusPills"></div>
     <div class="topbar-tabs" id="tabSwitcher"></div>
     <div class="topbar-actions">
       <button id="pauseBtn" class="topbar-btn" title="Pause / Resume (space)">⏸ Pause</button>
@@ -56,20 +44,24 @@
     <pre id="console"></pre>
   </div>
 
-  <!-- Core (must load before views/blueprints/app) -->
-  <script src="connection.js"></script>
+  <!-- Core (registries + databus) -->
   <script src="databus.js"></script>
   <script src="viewport.js"></script>
 
-  <!-- View classes (each registers itself with the viewport's view registry) -->
+  <!-- Source implementations -->
+  <script src="sources/web-serial.js"></script>
+
+  <!-- View classes (each registers itself with the view registry) -->
   <script src="views/plot.js"></script>
   <script src="views/pid-controls.js"></script>
 
-  <!-- Blueprints (depend on view types existing in the registry) -->
-  <script src="blueprints/telemetry.js"></script>
-  <script src="blueprints/pid-tuning.js"></script>
+  <!-- Board manifests + blueprints (each registers itself).
+       Add new boards by appending their manifest + blueprint scripts here. -->
+  <script src="boards/pico/manifest.js"></script>
+  <script src="boards/pico/blueprints/telemetry.js"></script>
+  <script src="boards/pico/blueprints/pid-tuning.js"></script>
 
-  <!-- Top-level wiring (uses everything above) -->
+  <!-- Top-level wiring -->
   <script src="app.js"></script>
 </body>
 </html>

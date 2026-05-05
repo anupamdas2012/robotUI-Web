@@ -1,6 +1,6 @@
-// Telemetry blueprint — the original 4 plots routed from Pico telemetry.
+// Telemetry blueprint — 4 plots routed from Pico telemetry stream.
 
-const TELEMETRY_BLUEPRINT = {
+registerBlueprint('telemetry', {
   name: 'Telemetry',
   layout: 'grid',
   views: [
@@ -63,4 +63,4 @@ const TELEMETRY_BLUEPRINT = {
       ],
     },
   ],
-};
+});

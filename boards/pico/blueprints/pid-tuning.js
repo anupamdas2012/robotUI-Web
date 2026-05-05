@@ -1,9 +1,9 @@
 // PID Tuning blueprint — placeholder layout for the (not-yet-implemented)
 // PID firmware. Once the Pico emits $PID,setpointL,actualL,errorL,...
 // these plots populate. The PidControls view is fully functional today
-// and will send PID:kP,kI,kD,setpoint commands once firmware accepts them.
+// and will work once firmware accepts PID: commands.
 
-const PID_TUNING_BLUEPRINT = {
+registerBlueprint('pid-tuning', {
   name: 'PID Tuning',
   layout: 'grid',
   views: [
@@ -15,10 +15,7 @@ const PID_TUNING_BLUEPRINT = {
         { label: 'Setpoint', color: '#f59e0b' },
         { label: 'Actual',   color: '#4cc9f0' },
       ],
-      // Placeholder route: $PID isn't emitted yet by firmware. Once it is,
-      // the format will be $PID,setpoint,actual,error,output and these
-      // plots come alive. Until then, $MOT-driven setpoint=0 / actual=rpmL
-      // is a vaguely useful stand-in so the layout isn't empty on the bench.
+      // Placeholder routing from $MOT until $PID exists in firmware.
       routes: [
         { prefix: '$MOT', map: (parts) => [0, parseFloat(parts[1])] },
       ],
@@ -39,4 +36,4 @@ const PID_TUNING_BLUEPRINT = {
       config: { kP: 0.5, kI: 0.1, kD: 0.05, setpoint: 50 },
     },
   ],
-};
+});

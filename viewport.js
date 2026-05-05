@@ -10,10 +10,26 @@
 //   vp.resetAllZoom()
 //   vp.activeViews()         — for debugging
 
+// Registries — populated at script load by view classes, blueprints, and
+// board manifests. The viewport / app.js read from these by id rather than
+// holding direct references, so adding a new view type or board is purely
+// additive (one new file + one register* call).
+
 const VIEW_REGISTRY = {};
+const BLUEPRINT_REGISTRY = {};
+const BOARD_REGISTRY = {};
 
 function registerViewType(type, factory) {
   VIEW_REGISTRY[type] = factory;
+}
+
+function registerBlueprint(id, blueprint) {
+  BLUEPRINT_REGISTRY[id] = blueprint;
+}
+
+function registerBoardManifest(manifest) {
+  if (!manifest || !manifest.id) throw new Error('Board manifest needs an id');
+  BOARD_REGISTRY[manifest.id] = manifest;
 }
 
 class Viewport {
