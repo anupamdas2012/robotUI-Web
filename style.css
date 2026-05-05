@@ -105,6 +105,74 @@ html[data-theme="nord"] {
   --slider-accent:     #88c0d0;
 }
 
+html[data-theme="azure"] {
+  --bg:                #0e1116;             /* deep slate */
+  --panel:             #161b22;             /* navy-graphite */
+  --card:              #1f262d;
+  --card-border:       #30363d;
+  --card-shadow:       0 0 8px rgba(40, 153, 245, 0.12);
+  --panel-border:      #30363d;
+  --text:              #f0f6fc;
+  --text-muted:        #8b949e;
+  --text-dim:          #c9d1d9;
+  --button-bg:         #21262d;
+  --button-bg-hover:   #30363d;
+  --button-border:     #30363d;
+  --console-bg:        #0d1117;
+  --console-text:      #c9d1d9;
+  --console-dialog-bg: #161b22;
+  --status-on:         #2ea043;             /* GitHub-style success green */
+  --status-off:        #d83b01;             /* deep red */
+  --status-gray:       #484f58;
+  --paused:            #ff8c00;             /* Azure warning */
+  --paused-bg:         rgba(255, 140, 0, 0.15);
+  --paused-border:     rgba(255, 140, 0, 0.5);
+  --paused-shadow:     rgba(255, 140, 0, 0.2);
+  --green-bg-tint:     rgba(46, 160, 67, 0.1);
+  --green-border:      rgba(46, 160, 67, 0.4);
+  --green-shadow:      rgba(46, 160, 67, 0.15);
+  --red-bg-tint:       rgba(216, 59, 1, 0.1);
+  --red-border:        rgba(216, 59, 1, 0.4);
+  --red-shadow:        rgba(216, 59, 1, 0.15);
+  --hover-tint:        rgba(240, 246, 252, 0.04);
+  --hover-tint-2:      rgba(240, 246, 252, 0.06);
+  --slider-accent:     #2899f5;
+}
+
+html[data-theme="apple"] {
+  --bg:                #1c1c1e;             /* System Background Dark */
+  --panel:             #2c2c2e;             /* Secondary Background */
+  --card:              #3a3a3c;             /* Tertiary Background */
+  --card-border:       #48484a;
+  --card-shadow:       0 0 6px rgba(0, 0, 0, 0.4);
+  --panel-border:      #38383a;
+  --text:              #ffffff;
+  --text-muted:        #8e8e93;             /* Tertiary Label */
+  --text-dim:          #aeaeb2;             /* Secondary Label */
+  --button-bg:         #3a3a3c;
+  --button-bg-hover:   #48484a;
+  --button-border:     #48484a;
+  --console-bg:        #000000;             /* deeper for OLED */
+  --console-text:      #aeaeb2;
+  --console-dialog-bg: #2c2c2e;
+  --status-on:         #30d158;             /* System Green */
+  --status-off:        #ff453a;             /* System Red */
+  --status-gray:       #48484a;
+  --paused:            #ff9f0a;             /* System Orange */
+  --paused-bg:         rgba(255, 159, 10, 0.15);
+  --paused-border:     rgba(255, 159, 10, 0.5);
+  --paused-shadow:     rgba(255, 159, 10, 0.2);
+  --green-bg-tint:     rgba(48, 209, 88, 0.1);
+  --green-border:      rgba(48, 209, 88, 0.4);
+  --green-shadow:      rgba(48, 209, 88, 0.15);
+  --red-bg-tint:       rgba(255, 69, 58, 0.1);
+  --red-border:        rgba(255, 69, 58, 0.4);
+  --red-shadow:        rgba(255, 69, 58, 0.15);
+  --hover-tint:        rgba(255, 255, 255, 0.04);
+  --hover-tint-2:      rgba(255, 255, 255, 0.06);
+  --slider-accent:     #0a84ff;
+}
+
 html[data-theme="forest"] {
   --bg:                #1e2326;             /* forest floor */
   --panel:             #272e33;

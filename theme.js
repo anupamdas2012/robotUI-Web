@@ -88,6 +88,38 @@ const THEMES = {
     },
     crosshair: 'rgba(211, 198, 170, 0.45)',
   },
+
+  // Azure — Microsoft Azure Monitor / Power BI dark inspired. Reserved
+  // navy-graphite surfaces; corporate data-viz palette for series.
+  azure: {
+    id: 'azure',
+    name: 'Azure (enterprise)',
+    series: {
+      cyan:   '#2899f5',  // Azure brand blue
+      pink:   '#b4009e',  // magenta
+      green:  '#00b894',  // teal-green
+      amber:  '#ff8c00',  // Azure warning orange
+      purple: '#8c3fff',  // violet
+      red:    '#d83b01',  // deep red
+    },
+    crosshair: 'rgba(240, 246, 252, 0.45)',
+  },
+
+  // Apple Dark — macOS / iOS System Dark Appearance. Apple system colors
+  // (Dark variants) on the SF Background / Secondary / Tertiary stack.
+  apple: {
+    id: 'apple',
+    name: 'Apple Dark',
+    series: {
+      cyan:   '#0a84ff',  // System Blue
+      pink:   '#ff375f',  // System Pink
+      green:  '#30d158',  // System Green
+      amber:  '#ff9f0a',  // System Orange
+      purple: '#bf5af2',  // System Purple
+      red:    '#ff453a',  // System Red
+    },
+    crosshair: 'rgba(255, 255, 255, 0.45)',
+  },
 };
 
 let _activeTheme = THEMES[localStorage.getItem('theme') || 'original'] || THEMES.original;
