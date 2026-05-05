@@ -400,14 +400,9 @@ button:hover {
   background: var(--status-gray);
 }
 
-/* Telemetry panel */
+/* Telemetry panel — now just a layout passthrough; charts sit on the page
+   background with no nested-card wrapper. */
 #telemetryPanel {
-  max-width: 80vw;
-  margin: 24px auto 16px;
-  background: var(--panel);
-  border: 1px solid var(--panel-border);
-  border-radius: 12px;
-  padding: 16px;
   overflow: visible;
 }
 
@@ -416,11 +411,14 @@ button:hover {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  max-width: 80vw;
+  margin: 24px auto 16px;
 }
 
 @media (max-width: 768px) {
   #chartGrid {
     grid-template-columns: 1fr;
+    max-width: 100%;
   }
   #topBar {
     gap: 8px;
