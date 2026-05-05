@@ -1,3 +1,179 @@
+/* Theme variables — see theme.js for the JS counterpart. Switching themes
+   updates the data-theme attribute on <html>; CSS custom properties cascade
+   automatically so almost all of the UI updates without JS work. */
+
+:root,
+html[data-theme="original"] {
+  --bg:                #121212;
+  --panel:             #1e1e1e;
+  --card:              #262626;
+  --card-border:       #3a3350;
+  --card-shadow:       0 0 6px rgba(90, 60, 140, 0.2);
+  --panel-border:      #333;
+  --text:              #e0e0e0;
+  --text-muted:        #888;
+  --text-dim:          #aaa;
+  --button-bg:         #2d2d44;
+  --button-bg-hover:   #3d3d5c;
+  --button-border:     #444;
+  --console-bg:        #111;
+  --console-text:      #aaa;
+  --console-dialog-bg: #222240;
+  --status-on:         #4ade80;
+  --status-off:        #ef4444;
+  --status-gray:       #555;
+  --paused:            #f59e0b;
+  --paused-bg:         rgba(245, 158, 11, 0.15);
+  --paused-border:     rgba(245, 158, 11, 0.5);
+  --paused-shadow:     rgba(245, 158, 11, 0.2);
+  --green-bg-tint:     rgba(74, 222, 128, 0.1);
+  --green-border:      rgba(74, 222, 128, 0.4);
+  --green-shadow:      rgba(74, 222, 128, 0.15);
+  --red-bg-tint:       rgba(239, 68, 68, 0.1);
+  --red-border:        rgba(239, 68, 68, 0.4);
+  --red-shadow:        rgba(239, 68, 68, 0.15);
+  --hover-tint:        rgba(255, 255, 255, 0.04);
+  --hover-tint-2:      rgba(255, 255, 255, 0.06);
+  --slider-accent:     #4cc9f0;
+}
+
+html[data-theme="gruvbox"] {
+  --bg:                #1d2021;
+  --panel:             #282828;
+  --card:              #3c3836;
+  --card-border:       #504945;
+  --card-shadow:       0 0 8px rgba(215, 153, 33, 0.15);
+  --panel-border:      #504945;
+  --text:              #ebdbb2;             /* creamy beige */
+  --text-muted:        #a89984;
+  --text-dim:          #d5c4a1;
+  --button-bg:         #3c3836;
+  --button-bg-hover:   #504945;
+  --button-border:     #504945;
+  --console-bg:        #1d2021;
+  --console-text:      #d5c4a1;
+  --console-dialog-bg: #282828;
+  --status-on:         #b8bb26;             /* olive-green */
+  --status-off:        #cc241d;             /* oxide-red */
+  --status-gray:       #665c54;
+  --paused:            #fabd2f;             /* mustard */
+  --paused-bg:         rgba(250, 189, 47, 0.15);
+  --paused-border:     rgba(250, 189, 47, 0.5);
+  --paused-shadow:     rgba(250, 189, 47, 0.2);
+  --green-bg-tint:     rgba(184, 187, 38, 0.1);
+  --green-border:      rgba(184, 187, 38, 0.4);
+  --green-shadow:      rgba(184, 187, 38, 0.15);
+  --red-bg-tint:       rgba(204, 36, 29, 0.1);
+  --red-border:        rgba(204, 36, 29, 0.4);
+  --red-shadow:        rgba(204, 36, 29, 0.15);
+  --hover-tint:        rgba(235, 219, 178, 0.04);
+  --hover-tint-2:      rgba(235, 219, 178, 0.06);
+  --slider-accent:     #fabd2f;
+}
+
+html[data-theme="nord"] {
+  --bg:                #2e3440;             /* nord0 polar night */
+  --panel:             #3b4252;             /* nord1 */
+  --card:              #434c5e;             /* nord2 */
+  --card-border:       #4c566a;             /* nord3 */
+  --card-shadow:       0 0 8px rgba(136, 192, 208, 0.15);
+  --panel-border:      #4c566a;
+  --text:              #eceff4;             /* nord6 snow storm */
+  --text-muted:        #4c566a;
+  --text-dim:          #d8dee9;
+  --button-bg:         #434c5e;
+  --button-bg-hover:   #4c566a;
+  --button-border:     #4c566a;
+  --console-bg:        #2e3440;
+  --console-text:      #d8dee9;
+  --console-dialog-bg: #3b4252;
+  --status-on:         #a3be8c;             /* nord14 aurora green */
+  --status-off:        #bf616a;             /* nord11 aurora red */
+  --status-gray:       #4c566a;
+  --paused:            #ebcb8b;             /* nord13 aurora yellow */
+  --paused-bg:         rgba(235, 203, 139, 0.15);
+  --paused-border:     rgba(235, 203, 139, 0.5);
+  --paused-shadow:     rgba(235, 203, 139, 0.2);
+  --green-bg-tint:     rgba(163, 190, 140, 0.1);
+  --green-border:      rgba(163, 190, 140, 0.4);
+  --green-shadow:      rgba(163, 190, 140, 0.15);
+  --red-bg-tint:       rgba(191, 97, 106, 0.1);
+  --red-border:        rgba(191, 97, 106, 0.4);
+  --red-shadow:        rgba(191, 97, 106, 0.15);
+  --hover-tint:        rgba(216, 222, 233, 0.04);
+  --hover-tint-2:      rgba(216, 222, 233, 0.06);
+  --slider-accent:     #88c0d0;
+}
+
+html[data-theme="forest"] {
+  --bg:                #1e2326;             /* forest floor */
+  --panel:             #272e33;
+  --card:              #2d353b;
+  --card-border:       #343f44;
+  --card-shadow:       0 0 8px rgba(167, 192, 128, 0.12);
+  --panel-border:      #343f44;
+  --text:              #d3c6aa;             /* warm cream */
+  --text-muted:        #859289;
+  --text-dim:          #9da9a0;
+  --button-bg:         #2d353b;
+  --button-bg-hover:   #343f44;
+  --button-border:     #343f44;
+  --console-bg:        #1e2326;
+  --console-text:      #9da9a0;
+  --console-dialog-bg: #272e33;
+  --status-on:         #a7c080;             /* sage */
+  --status-off:        #e67e80;             /* dusty red */
+  --status-gray:       #7a8478;
+  --paused:            #dbbc7f;             /* wheat */
+  --paused-bg:         rgba(219, 188, 127, 0.15);
+  --paused-border:     rgba(219, 188, 127, 0.5);
+  --paused-shadow:     rgba(219, 188, 127, 0.2);
+  --green-bg-tint:     rgba(167, 192, 128, 0.1);
+  --green-border:      rgba(167, 192, 128, 0.4);
+  --green-shadow:      rgba(167, 192, 128, 0.15);
+  --red-bg-tint:       rgba(230, 126, 128, 0.1);
+  --red-border:        rgba(230, 126, 128, 0.4);
+  --red-shadow:        rgba(230, 126, 128, 0.15);
+  --hover-tint:        rgba(211, 198, 170, 0.04);
+  --hover-tint-2:      rgba(211, 198, 170, 0.06);
+  --slider-accent:     #a7c080;
+}
+
+html[data-theme="mocha"] {
+  /* Catppuccin Mocha for the surfaces */
+  --bg:                #11111b;             /* crust */
+  --panel:             #181825;             /* mantle */
+  --card:              #1e1e2e;             /* base */
+  --card-border:       #313244;             /* surface0 */
+  --card-shadow:       0 0 10px rgba(137, 180, 250, 0.12);
+  --panel-border:      #313244;
+  --text:              #cdd6f4;
+  --text-muted:        #6c7086;             /* overlay0 */
+  --text-dim:          #a6adc8;             /* subtext0 */
+  --button-bg:         #313244;             /* surface0 */
+  --button-bg-hover:   #45475a;             /* surface1 */
+  --button-border:     #45475a;
+  --console-bg:        #11111b;
+  --console-text:      #a6adc8;
+  --console-dialog-bg: #1e1e2e;
+  --status-on:         #a6e3a1;             /* green */
+  --status-off:        #f38ba8;             /* red */
+  --status-gray:       #585b70;             /* surface2 */
+  --paused:            #fab387;             /* peach */
+  --paused-bg:         rgba(250, 179, 135, 0.15);
+  --paused-border:     rgba(250, 179, 135, 0.5);
+  --paused-shadow:     rgba(250, 179, 135, 0.2);
+  --green-bg-tint:     rgba(166, 227, 161, 0.1);
+  --green-border:      rgba(166, 227, 161, 0.4);
+  --green-shadow:      rgba(166, 227, 161, 0.15);
+  --red-bg-tint:       rgba(243, 139, 168, 0.1);
+  --red-border:        rgba(243, 139, 168, 0.4);
+  --red-shadow:        rgba(243, 139, 168, 0.15);
+  --hover-tint:        rgba(205, 214, 244, 0.04);
+  --hover-tint-2:      rgba(205, 214, 244, 0.06);
+  --slider-accent:     #89b4fa;             /* blue */
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -5,8 +181,8 @@
 }
 
 body {
-  background: #121212;
-  color: #e0e0e0;
+  background: var(--bg);
+  color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   padding: 16px;
   padding-top: 60px;
@@ -14,9 +190,9 @@ body {
 }
 
 button {
-  background: #2d2d44;
-  color: #e0e0e0;
-  border: 1px solid #444;
+  background: var(--button-bg);
+  color: var(--text);
+  border: 1px solid var(--button-border);
   border-radius: 6px;
   padding: 8px 20px;
   cursor: pointer;
@@ -24,7 +200,7 @@ button {
 }
 
 button:hover {
-  background: #3d3d5c;
+  background: var(--button-bg-hover);
 }
 
 /* Floating top bar */
@@ -38,8 +214,8 @@ button:hover {
   align-items: center;
   gap: 16px;
   padding: 10px 16px;
-  background: #1e1e1e;
-  border-bottom: 1px solid #333;
+  background: var(--panel);
+  border-bottom: 1px solid var(--panel-border);
 }
 
 .topbar-status {
@@ -59,7 +235,7 @@ button:hover {
 .tab-btn {
   background: transparent;
   border: 1px solid transparent;
-  color: #888;
+  color: var(--text-muted);
   padding: 6px 16px;
   font-size: 0.9rem;
   border-radius: 6px;
@@ -68,14 +244,14 @@ button:hover {
 }
 
 .tab-btn:hover {
-  color: #e0e0e0;
-  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  background: var(--hover-tint);
 }
 
 .tab-btn.active {
-  color: #e0e0e0;
-  background: #2d2d44;
-  border-color: #444;
+  color: var(--text);
+  background: var(--button-bg);
+  border-color: var(--button-border);
 }
 
 .topbar-actions {
@@ -92,22 +268,22 @@ button:hover {
 .topbar-btn {
   padding: 6px 14px;
   font-size: 0.85rem;
-  background: #2d2d44;
-  border: 1px solid #444;
+  background: var(--button-bg);
+  border: 1px solid var(--button-border);
   border-radius: 6px;
-  color: #e0e0e0;
+  color: var(--text);
   cursor: pointer;
 }
 
 .topbar-btn:hover {
-  background: #3d3d5c;
+  background: var(--button-bg-hover);
 }
 
 .topbar-btn.active {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.5);
-  color: #f59e0b;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+  background: var(--paused-bg);
+  border-color: var(--paused-border);
+  color: var(--paused);
+  box-shadow: 0 0 8px var(--paused-shadow);
 }
 
 .status-pill {
@@ -116,23 +292,23 @@ button:hover {
   gap: 8px;
   font-size: 0.85rem;
   padding: 5px 14px;
-  background: #2d2d44;
-  border: 1px solid #444;
+  background: var(--button-bg);
+  border: 1px solid var(--button-border);
   border-radius: 20px;
   cursor: default;
   transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 
 .status-pill:has(.dot-green) {
-  background: rgba(74, 222, 128, 0.1);
-  border-color: rgba(74, 222, 128, 0.4);
-  box-shadow: 0 0 8px rgba(74, 222, 128, 0.15);
+  background: var(--green-bg-tint);
+  border-color: var(--green-border);
+  box-shadow: 0 0 8px var(--green-shadow);
 }
 
 .status-pill:has(.dot-red) {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.4);
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.15);
+  background: var(--red-bg-tint);
+  border-color: var(--red-border);
+  box-shadow: 0 0 8px var(--red-shadow);
 }
 
 .dot {
@@ -143,25 +319,25 @@ button:hover {
 }
 
 .dot-green {
-  background: #4ade80;
-  box-shadow: 0 0 6px #4ade80;
+  background: var(--status-on);
+  box-shadow: 0 0 6px var(--status-on);
 }
 
 .dot-red {
-  background: #ef4444;
-  box-shadow: 0 0 6px #ef4444;
+  background: var(--status-off);
+  box-shadow: 0 0 6px var(--status-off);
 }
 
 .dot-gray {
-  background: #555;
+  background: var(--status-gray);
 }
 
 /* Telemetry panel */
 #telemetryPanel {
   max-width: 80vw;
   margin: 24px auto 16px;
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
   border-radius: 12px;
   padding: 16px;
   overflow: visible;
@@ -178,18 +354,16 @@ button:hover {
   #chartGrid {
     grid-template-columns: 1fr;
   }
-
   #topBar {
     gap: 8px;
     padding: 8px 12px;
   }
-
 }
 
 .chart-card {
-  background: #262626;
-  border: 1px solid #3a3350;
-  box-shadow: 0 0 6px rgba(90, 60, 140, 0.2);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
   border-radius: 8px;
   padding: 16px;
   min-width: 0;
@@ -199,8 +373,8 @@ button:hover {
 }
 
 .chart-card.paused {
-  border-color: rgba(245, 158, 11, 0.5);
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+  border-color: var(--paused-border);
+  box-shadow: 0 0 10px var(--paused-shadow);
 }
 
 .chart-card canvas {
@@ -245,7 +419,7 @@ button:hover {
 }
 
 .value-chip:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--hover-tint-2);
 }
 
 .value-chip.muted {
@@ -271,16 +445,16 @@ button:hover {
 }
 
 .pid-label {
-  color: #aaa;
+  color: var(--text-dim);
 }
 
 .pid-slider input[type="range"] {
   width: 100%;
-  accent-color: #4cc9f0;
+  accent-color: var(--slider-accent);
 }
 
 .pid-value {
-  color: #e0e0e0;
+  color: var(--text);
   text-align: right;
 }
 
@@ -293,16 +467,9 @@ button:hover {
 .pid-status {
   font-family: 'SF Mono', 'Fira Code', monospace;
   font-size: 0.8rem;
-  color: #f59e0b;
+  color: var(--paused);
   min-height: 1em;
 }
-
-.val-cyan { color: #4cc9f0; }
-.val-pink { color: #f72585; }
-.val-green { color: #4ade80; }
-.val-amber { color: #f59e0b; }
-.val-purple { color: #8b5cf6; }
-.val-red { color: #ef4444; }
 
 /* Bottom bar */
 #bottomBar {
@@ -328,13 +495,13 @@ button:hover {
 }
 
 .console-pill:hover {
-  background: #3d3d5c;
+  background: var(--button-bg-hover);
 }
 
 .console-pill.active {
-  background: rgba(74, 222, 128, 0.1);
-  border-color: rgba(74, 222, 128, 0.4);
-  box-shadow: 0 0 8px rgba(74, 222, 128, 0.15);
+  background: var(--green-bg-tint);
+  border-color: var(--green-border);
+  box-shadow: 0 0 8px var(--green-shadow);
 }
 
 /* Floating console dialog */
@@ -345,8 +512,8 @@ button:hover {
   width: 480px;
   height: 300px;
   z-index: 99;
-  background: #222240;
-  border: 1px solid #333;
+  background: var(--console-dialog-bg);
+  border: 1px solid var(--panel-border);
   border-radius: 8px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
   display: flex;
@@ -366,7 +533,7 @@ button:hover {
   justify-content: space-between;
   align-items: center;
   padding: 10px 16px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--panel-border);
   flex-shrink: 0;
   cursor: grab;
   user-select: none;
@@ -390,7 +557,7 @@ button:hover {
 .close-btn {
   background: none;
   border: none;
-  color: #888;
+  color: var(--text-muted);
   font-size: 1.4rem;
   padding: 2px 8px;
   cursor: pointer;
@@ -398,13 +565,13 @@ button:hover {
 }
 
 .close-btn:hover {
-  color: #e0e0e0;
+  color: var(--text);
   background: none;
 }
 
 #console {
-  background: #111;
-  color: #aaa;
+  background: var(--console-bg);
+  color: var(--console-text);
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
   font-size: 0.8rem;
   padding: 12px;

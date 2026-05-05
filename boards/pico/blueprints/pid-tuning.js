@@ -12,8 +12,8 @@ registerBlueprint('pid-tuning', {
       id: 'pid_setpoint_actual',
       title: 'Setpoint vs Actual (RPM)',
       series: [
-        { label: 'Setpoint', color: '#f59e0b' },
-        { label: 'Actual',   color: '#4cc9f0' },
+        { label: 'Setpoint', color: 'amber' },
+        { label: 'Actual',   color: 'cyan' },
       ],
       // Placeholder routing from $MOT until $PID exists in firmware.
       routes: [
@@ -24,7 +24,7 @@ registerBlueprint('pid-tuning', {
       type: 'plot',
       id: 'pid_error',
       title: 'Error',
-      series: [{ label: 'Error', color: '#f72585' }],
+      series: [{ label: 'Error', color: 'pink' }],
       routes: [
         { prefix: '$MOT', map: (parts) => [0 - parseFloat(parts[1])] },
       ],

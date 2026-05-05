@@ -9,8 +9,8 @@ registerBlueprint('telemetry', {
       id: 'rpm',
       title: 'Motor RPM',
       series: [
-        { label: 'L', color: '#4cc9f0' },
-        { label: 'R', color: '#f72585' },
+        { label: 'L', color: 'cyan' },
+        { label: 'R', color: 'pink' },
       ],
       routes: [
         { prefix: '$MOT', map: (parts) => [parseFloat(parts[1]), parseFloat(parts[2])] },
@@ -23,7 +23,7 @@ registerBlueprint('telemetry', {
       series: [
         {
           label: 'Distance',
-          color: '#4ade80',
+          color: 'green',
           format: (label, v) => (v == null ? `${label}: --` : `${v.toFixed(0)} mm`),
         },
       ],
@@ -39,9 +39,9 @@ registerBlueprint('telemetry', {
       id: 'imu',
       title: 'IMU Orientation',
       series: [
-        { label: 'H', color: '#f59e0b' },
-        { label: 'P', color: '#4cc9f0' },
-        { label: 'R', color: '#f72585' },
+        { label: 'H', color: 'amber' },
+        { label: 'P', color: 'cyan' },
+        { label: 'R', color: 'pink' },
       ],
       routes: [
         {
@@ -55,8 +55,8 @@ registerBlueprint('telemetry', {
       id: 'loop',
       title: 'Loop Timing (µs)',
       series: [
-        { label: 'Avg', color: '#8b5cf6', format: (label, v) => (v == null ? `${label}: --` : `${label}: ${v | 0}us`) },
-        { label: 'Max', color: '#ef4444', format: (label, v) => (v == null ? `${label}: --` : `${label}: ${v | 0}us`) },
+        { label: 'Avg', color: 'purple', format: (label, v) => (v == null ? `${label}: --` : `${label}: ${v | 0}us`) },
+        { label: 'Max', color: 'red',    format: (label, v) => (v == null ? `${label}: --` : `${label}: ${v | 0}us`) },
       ],
       routes: [
         { prefix: '$MOT', map: (parts) => [parseInt(parts[5], 10), parseInt(parts[6], 10)] },
