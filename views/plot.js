@@ -20,7 +20,8 @@ const _crosshairPlugin = {
     if (px < area.left || px > area.right) return;
     const ctx = chart.ctx;
     ctx.save();
-    ctx.strokeStyle = 'rgba(230, 230, 230, 0.45)';
+    const theme = (typeof getActiveTheme === 'function') ? getActiveTheme() : null;
+    ctx.strokeStyle = (theme && theme.crosshair) || 'rgba(230, 230, 230, 0.45)';
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
@@ -64,6 +65,31 @@ class Plot {
     this._buildChart();
     this._setupHoverSync();
     this._subscribeRoutes();
+    this._subscribeTheme();
+  }
+
+  // Resolve a series's color spec ('cyan', '#abc', etc.) through the active
+  // theme. Slot names become hex; literal strings pass through.
+  _resolvedColor(seriesIndex) {
+    const spec = this.series[seriesIndex].color;
+    if (typeof resolveColor === 'function') return resolveColor(spec);
+    return spec;
+  }
+
+  _subscribeTheme() {
+    if (typeof onThemeChange !== 'function') return;
+    const unsub = onThemeChange(() => this._applyTheme());
+    this._unsubs.push(unsub);
+  }
+
+  _applyTheme() {
+    if (!this.chart) return;
+    for (let i = 0; i < this.series.length; i += 1) {
+      const c = this._resolvedColor(i);
+      this.chart.data.datasets[i].borderColor = c;
+      if (this.valueElements[i]) this.valueElements[i].style.color = c;
+    }
+    this.chart.update('none');
   }
 
   _buildDom(container) {
@@ -83,7 +109,7 @@ class Plot {
     this.valueElements = this.series.map((s, i) => {
       const span = document.createElement('span');
       span.className = 'value-chip';
-      span.style.color = s.color;
+      span.style.color = this._resolvedColor(i);
       span.textContent = this._formatValue(s, null);
       span.title = `Click to toggle ${s.label}`;
       span.addEventListener('click', () => this._toggleSeries(i));
@@ -107,10 +133,10 @@ class Plot {
       type: 'line',
       data: {
         labels: [],
-        datasets: this.series.map((s) => ({
+        datasets: this.series.map((s, i) => ({
           label: s.label,
           data: [],
-          borderColor: s.color,
+          borderColor: this._resolvedColor(i),
           backgroundColor: 'transparent',
           borderWidth: 1.5,
           pointRadius: 0,
