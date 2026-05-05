@@ -26,6 +26,7 @@ const THEMES = {
       red:    '#ef4444',
     },
     crosshair: 'rgba(230, 230, 230, 0.45)',
+    gridColor: 'rgba(255, 255, 255, 0.06)',
   },
 
   // Catppuccin Mocha for UI surfaces + Tableau 10 for chart series.
@@ -42,6 +43,7 @@ const THEMES = {
       red:    '#E15759',  // Tableau 10 red
     },
     crosshair: 'rgba(205, 214, 244, 0.45)',
+    gridColor: 'rgba(205, 214, 244, 0.07)',
   },
 
   // Gruvbox (dark, warm). Mustard, terracotta, olive, oxide-red.
@@ -57,6 +59,7 @@ const THEMES = {
       red:    '#fb4934',  // bright oxide-red
     },
     crosshair: 'rgba(235, 219, 178, 0.45)',
+    gridColor: 'rgba(235, 219, 178, 0.07)',
   },
 
   // Nord. Cool, calm, arctic-blue + soft pastel aurora accents.
@@ -72,6 +75,7 @@ const THEMES = {
       red:    '#bf616a',  // nord11
     },
     crosshair: 'rgba(216, 222, 233, 0.45)',
+    gridColor: 'rgba(216, 222, 233, 0.07)',
   },
 
   // Forest (Everforest-inspired). Mossy greens, wheat, sage, dusty rose.
@@ -87,6 +91,7 @@ const THEMES = {
       red:    '#e67e80',  // dusty red
     },
     crosshair: 'rgba(211, 198, 170, 0.45)',
+    gridColor: 'rgba(211, 198, 170, 0.07)',
   },
 
   // Azure — Microsoft Azure Monitor / Power BI dark inspired. Reserved
@@ -103,6 +108,7 @@ const THEMES = {
       red:    '#d83b01',  // deep red
     },
     crosshair: 'rgba(240, 246, 252, 0.45)',
+    gridColor: 'rgba(240, 246, 252, 0.06)',
   },
 
   // Apple Dark — macOS / iOS System Dark Appearance. Apple system colors
@@ -119,6 +125,7 @@ const THEMES = {
       red:    '#ff453a',  // System Red
     },
     crosshair: 'rgba(255, 255, 255, 0.45)',
+    gridColor: 'rgba(255, 255, 255, 0.07)',
   },
 };
 

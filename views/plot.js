@@ -89,7 +89,15 @@ class Plot {
       this.chart.data.datasets[i].borderColor = c;
       if (this.valueElements[i]) this.valueElements[i].style.color = c;
     }
+    const grid = this._gridColor();
+    this.chart.options.scales.x.grid.color = grid;
+    this.chart.options.scales.y.grid.color = grid;
     this.chart.update('none');
+  }
+
+  _gridColor() {
+    const t = (typeof getActiveTheme === 'function') ? getActiveTheme() : null;
+    return (t && t.gridColor) || 'rgba(255, 255, 255, 0.06)';
   }
 
   _buildDom(container) {
@@ -172,8 +180,25 @@ class Plot {
           },
         },
         scales: {
-          x: { display: false, type: 'linear' },
-          y: { beginAtZero: false },
+          x: {
+            type: 'linear',
+            ticks: { display: false },
+            border: { display: false },
+            grid: {
+              display: true,
+              drawTicks: false,
+              color: this._gridColor(),
+            },
+          },
+          y: {
+            beginAtZero: false,
+            border: { display: false },
+            grid: {
+              display: true,
+              drawTicks: false,
+              color: this._gridColor(),
+            },
+          },
         },
       },
     });
