@@ -47,6 +47,30 @@ If you can't use Chromium, you can run the dashboard in any browser by serving i
 
 ---
 
+## Three things to remember before extending
+
+If you only take three ideas away from the architecture, take these. Everything below builds on them:
+
+1. **Views are tools.** Each view file is one *type* of UI surface — a line chart, a control panel, a gauge, an image viewer. New types = new files in `views/`. Existing views can be reused as many times as a blueprint asks for.
+2. **Blueprints are layouts.** They pick which views to show on a page, how each one is configured, and which data routes feed it. New pages = new blueprint files in `boards/<board>/blueprints/`.
+3. **Boards are spec sheets.** Each board manifest declares which robot, what protocol it speaks, which blueprints ship with it, and what hardware components to indicate in the topbar. New robots = new folders under `boards/`.
+
+The data path at runtime, in one diagram:
+
+```mermaid
+flowchart LR
+    Robot[("Robot")] <-->|"USB serial"| Source[Source]
+    Source -->|"lines"| Bus[(DataBus)]
+    Bus -->|"by prefix"| Views["Views<br/>(in active blueprint)"]
+    Views -.->|"send commands"| Source
+
+    BM[/"Board Manifest"/] -.->|"configures"| Source
+    BM -.->|"references"| BP[/"Blueprint"/]
+    BP -.->|"specifies"| Views
+```
+
+For a deeper walkthrough including data-flow and user-action sequence diagrams, see [Architecture.md](./Architecture.md). The how-to guides below assume you've at least skimmed those three ideas.
+
 ## How to add a new chart
 
 The fastest way to extend the dashboard. No new files — just edit a blueprint.

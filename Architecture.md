@@ -27,6 +27,112 @@ Everything in the dashboard is one of those six things. New robot? Same kitchen,
 
 ---
 
+## Three things to remember
+
+If you only take three ideas away, take these:
+
+1. **Views are tools.** Each view file is one *type* of UI surface — a line chart, a control panel, a gauge, an image viewer. New types = new files in `views/`. Existing views can be reused as many times as a blueprint asks for.
+2. **Blueprints are layouts.** They pick which views to show on a page, how each one is configured, and which data routes feed it. New pages = new blueprint files in `boards/<board>/blueprints/`.
+3. **Boards are spec sheets.** Each board manifest declares which robot, what protocol it speaks, which blueprints ship with it, and what hardware components to indicate in the topbar. New robots = new folders under `boards/`.
+
+The same three patterns repeat all over: views are reused across blueprints, blueprints are picked by boards, boards swap independently of everything else. Add by appending a file in the right folder.
+
+---
+
+## Visual architecture
+
+### Component overview
+
+How the moving pieces connect at runtime. Solid arrows are runtime data flow; dashed arrows are configuration (read at boot, not active during a session).
+
+```mermaid
+flowchart LR
+    Robot[("Robot<br/>e.g. Pico 2")]
+
+    subgraph Browser
+        direction TB
+        Source["Source<br/>(WebSerialSource)"]
+        Bus[("DataBus<br/>pub/sub by prefix")]
+        VP["Viewport<br/>layout + lifecycle"]
+
+        subgraph "Active blueprint"
+            direction LR
+            V1["Plot: RPM"]
+            V2["Plot: IMU"]
+            V3["PidControls"]
+        end
+    end
+
+    Robot <-->|"USB serial<br/>$MOT / $IMU / ..."| Source
+    Source -->|"lines"| Bus
+    Bus -->|"$MOT"| V1
+    Bus -->|"$IMU"| V2
+    V3 -->|"PID:0.5,..."| Source
+
+    BM[/"Board Manifest"/]
+    BP[/"Blueprint"/]
+
+    BM -.->|"declares"| Source
+    BM -.->|"references"| BP
+    BP -.->|"specifies"| V1
+    BP -.->|"specifies"| V2
+    BP -.->|"specifies"| V3
+    VP --- V1
+    VP --- V2
+    VP --- V3
+```
+
+### Data flow — single message, byte to pixel
+
+What happens for *one* `$MOT` line from the robot, dozens of times per second:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Robot
+    participant S as WebSerialSource
+    participant B as DataBus
+    participant Plot as Plot view
+
+    Robot->>S: USB bytes "$MOT,12.3,14.5\n"
+    S->>S: assemble line (split on \n)
+    S->>B: dispatch("$MOT,12.3,14.5")
+    B->>B: split on , read prefix
+    B->>Plot: notify(parts array)
+    Plot->>Plot: route.map(parts) → [12.3, 14.5]
+    Plot->>Plot: push to ring buffer
+    Plot->>Plot: chart.update — pixels rendered
+```
+
+### User action — switching blueprints
+
+What happens when you click the *PID Tuning* tab. The Source connection is never dropped — data keeps flowing the whole time.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant App as app.js
+    participant VP as Viewport
+    participant Old as Old views
+    participant New as New views
+    participant Bus as DataBus
+    participant Source
+
+    User->>App: click "PID Tuning" tab
+    App->>VP: loadBlueprint(pidTuning)
+    VP->>Old: destroy() each
+    Old->>Bus: unsubscribe routes
+    Old->>Old: chart.destroy(), remove DOM
+    VP->>New: instantiate from spec
+    New->>Bus: subscribe to new routes
+    Note over Source,Bus: Source connection<br/>was never closed
+    Source->>Bus: lines keep arriving
+    Bus->>New: dispatched to new views
+```
+
+---
+
 ## The six pieces
 
 ### 1. Source — the bridge to your hardware
