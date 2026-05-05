@@ -1,133 +1,38 @@
-// Web Serial Dashboard for Pico 2 Motor Control
+// app.js — top-level wiring.
 //
-// Architecture:
-//   - Plot   (plot.js)   owns one card: DOM, Chart.js, ring buffer, pause, zoom
-//   - app.js                wires connection + parser + blueprint + sync
-//
-// Adding a metric is a one-entry change to BLUEPRINT plus a one-line route in
-// ROUTES.
+// Responsibilities:
+//   - Instantiate the connection, databus, and viewport
+//   - Pump connection lines into the databus + console
+//   - Maintain status pill state from $STA
+//   - Handle Connect/Pause/Reset buttons and the blueprint tab switcher
+//   - Spacebar shortcut for pause
 
-const MAX_POINTS = 200;
 const MAX_CONSOLE_LINES = 500;
 const DISCONNECT_TIMEOUT_MS = 2000;
 
-// Chart.js defaults for dark theme.
 Chart.defaults.color = '#888';
 Chart.defaults.borderColor = '#2a2a2a';
 
-// =============================================================================
-// Blueprint — declarative plot definitions
-// =============================================================================
+// -----------------------------------------------------------------------------
+// Core: connection + databus + viewport
+// -----------------------------------------------------------------------------
 
-const BLUEPRINT = [
-  {
-    id: 'rpm',
-    title: 'Motor RPM',
-    series: [
-      { label: 'L', color: '#4cc9f0' },
-      { label: 'R', color: '#f72585' },
-    ],
-  },
-  {
-    id: 'tof',
-    title: 'ToF Distance',
-    series: [
-      {
-        label: 'Distance',
-        color: '#4ade80',
-        format: (label, v) => (v == null ? `${label}: --` : `${v.toFixed(0)} mm`),
-      },
-    ],
-  },
-  {
-    id: 'imu',
-    title: 'IMU Orientation',
-    series: [
-      { label: 'H', color: '#f59e0b' },
-      { label: 'P', color: '#4cc9f0' },
-      { label: 'R', color: '#f72585' },
-    ],
-  },
-  {
-    id: 'loop',
-    title: 'Loop Timing (µs)',
-    series: [
-      { label: 'Avg', color: '#8b5cf6', format: (label, v) => (v == null ? `${label}: --` : `${label}: ${v|0}us`) },
-      { label: 'Max', color: '#ef4444', format: (label, v) => (v == null ? `${label}: --` : `${label}: ${v|0}us`) },
-    ],
-  },
-];
-
-// =============================================================================
-// Plot instantiation + cross-plot zoom sync
-// =============================================================================
-
+const connection = new Connection();
+const bus = new DataBus();
 const chartGrid = document.getElementById('chartGrid');
-const plots = {};
-for (const spec of BLUEPRINT) {
-  plots[spec.id] = new Plot({
-    id: spec.id,
-    title: spec.title,
-    series: spec.series,
-    container: chartGrid,
-    maxPoints: MAX_POINTS,
-  });
-}
+const viewport = new Viewport(chartGrid, { connection, bus });
 
-// When the user zooms or pans one plot, mirror the X range on every sibling.
-for (const id of Object.keys(plots)) {
-  plots[id].onZoomChanged(({ xMin, xMax, source }) => {
-    for (const otherId of Object.keys(plots)) {
-      if (otherId === id) continue;
-      plots[otherId].setVisibleRange(xMin, xMax);
-    }
-  });
-}
-
-// Hover crosshair sync — hovering any chart draws a vertical line at the same
-// X on every chart. Listener is attached to all plots (including the source)
-// so the originating plot also gets the hover indicator.
-for (const id of Object.keys(plots)) {
-  plots[id].onHoverChanged(({ x }) => {
-    for (const otherId of Object.keys(plots)) {
-      plots[otherId].setHoverX(x);
-    }
-  });
-}
-
-// =============================================================================
-// Routes — map a $-prefix message to plot.push() calls
-// =============================================================================
-
-const ROUTES = {
-  $MOT: (parts) => {
-    plots.rpm.push([parseFloat(parts[1]), parseFloat(parts[2])]);
-    plots.loop.push([parseInt(parts[5], 10), parseInt(parts[6], 10)]);
-  },
-  $IMU: (parts) => {
-    plots.imu.push([parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3])]);
-  },
-  $TOF: (parts) => {
-    const valid = parts[2] === '1';
-    plots.tof.push([valid ? parseInt(parts[1], 10) : null]);
-  },
-  $STA: (parts) => {
-    setDot(dotMotors, 'on');
-    setDot(dotIMU, parts[1] === '1' ? 'on' : 'off');
-    setDot(dotToF, parts[2] === '1' ? 'on' : 'off');
-  },
+// Available blueprints. Add new entries here when introducing new pages.
+const BLUEPRINTS = {
+  telemetry: TELEMETRY_BLUEPRINT,
+  'pid-tuning': PID_TUNING_BLUEPRINT,
 };
 
-// =============================================================================
-// Serial connection + line parser
-// =============================================================================
+let activeBlueprintKey = 'telemetry';
 
-let port = null;
-let reader = null;
-let lastDataTime = 0;
-let disconnectTimer = null;
-let lineBuf = '';
-let paused = false;
+// -----------------------------------------------------------------------------
+// DOM refs
+// -----------------------------------------------------------------------------
 
 const connectBtn = document.getElementById('connectBtn');
 const pauseBtn = document.getElementById('pauseBtn');
@@ -137,8 +42,49 @@ const consoleEl = document.getElementById('console');
 const dotMotors = document.getElementById('dotMotors');
 const dotIMU = document.getElementById('dotIMU');
 const dotToF = document.getElementById('dotToF');
+const tabContainer = document.getElementById('tabSwitcher');
+
+let paused = false;
+
+// -----------------------------------------------------------------------------
+// Connection -> bus + console + status
+// -----------------------------------------------------------------------------
+
+connection.onLine((line) => {
+  bus.dispatch(line);
+  appendConsole(line);
+});
+
+connection.onStatus((status) => {
+  if (status === 'connected') {
+    connectBtn.textContent = 'Disconnect';
+  } else {
+    connectBtn.textContent = 'Connect';
+    setDot(dotMotors, 'gray');
+    setDot(dotIMU, 'gray');
+    setDot(dotToF, 'gray');
+  }
+});
+
+// $STA drives the status pills regardless of which blueprint is active.
+bus.subscribe('$STA', (parts) => {
+  setDot(dotMotors, 'on');
+  setDot(dotIMU, parts[1] === '1' ? 'on' : 'off');
+  setDot(dotToF, parts[2] === '1' ? 'on' : 'off');
+});
+
+// Quiet pills back to 'off' if the data stream stalls.
+setInterval(() => {
+  if (!connection.isConnected()) return;
+  if (Date.now() - connection.lastDataTime() > DISCONNECT_TIMEOUT_MS) {
+    setDot(dotMotors, 'off');
+    setDot(dotIMU, 'off');
+    setDot(dotToF, 'off');
+  }
+}, 500);
 
 function setDot(el, state) {
+  if (!el) return;
   el.className = 'dot ' + (state === 'on' ? 'dot-green' : state === 'off' ? 'dot-red' : 'dot-gray');
 }
 
@@ -151,114 +97,50 @@ function appendConsole(line) {
   consoleEl.scrollTop = consoleEl.scrollHeight;
 }
 
-function parseLine(line) {
-  appendConsole(line);
-  if (!line.startsWith('$')) return;
+// -----------------------------------------------------------------------------
+// Blueprint switcher
+// -----------------------------------------------------------------------------
 
-  lastDataTime = Date.now();
-  const parts = line.split(',');
-  const route = ROUTES[parts[0]];
-  if (route) route(parts);
-}
-
-async function connect() {
-  try {
-    port = await navigator.serial.requestPort();
-    await port.open({ baudRate: 115200 });
-    connectBtn.textContent = 'Disconnect';
-    lastDataTime = Date.now();
-    startDisconnectWatcher();
-    readLoop();
-  } catch (e) {
-    console.error('Connection failed:', e);
+function loadBlueprint(key) {
+  const bp = BLUEPRINTS[key];
+  if (!bp) return;
+  activeBlueprintKey = key;
+  viewport.loadBlueprint(bp);
+  // Reset pause when switching pages — new views start in live mode.
+  paused = false;
+  pauseBtn.textContent = '⏸ Pause';
+  pauseBtn.classList.remove('active');
+  // Refresh tab-active styling.
+  for (const btn of tabContainer.querySelectorAll('.tab-btn')) {
+    btn.classList.toggle('active', btn.dataset.blueprint === key);
   }
 }
 
-async function disconnect() {
-  try {
-    if (reader) {
-      await reader.cancel();
-      reader = null;
-    }
-    if (port) {
-      await port.close();
-      port = null;
-    }
-  } catch (e) {
-    console.error('Disconnect error:', e);
-  }
-  connectBtn.textContent = 'Connect';
-  stopDisconnectWatcher();
-  setDot(dotMotors, 'gray');
-  setDot(dotIMU, 'gray');
-  setDot(dotToF, 'gray');
-}
-
-async function readLoop() {
-  const decoder = new TextDecoderStream();
-  port.readable.pipeTo(decoder.writable);
-  reader = decoder.readable.getReader();
-  try {
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      if (value) {
-        lineBuf += value;
-        const lines = lineBuf.split('\n');
-        lineBuf = lines.pop();
-        for (const raw of lines) {
-          const trimmed = raw.replace(/\r$/, '');
-          if (trimmed.length > 0) parseLine(trimmed);
-        }
-      }
-    }
-  } catch (e) {
-    console.error('Read error:', e);
-  }
-  reader = null;
-}
-
-function startDisconnectWatcher() {
-  disconnectTimer = setInterval(() => {
-    if (Date.now() - lastDataTime > DISCONNECT_TIMEOUT_MS) {
-      setDot(dotMotors, 'off');
-      setDot(dotIMU, 'off');
-      setDot(dotToF, 'off');
-    }
-  }, 500);
-}
-
-function stopDisconnectWatcher() {
-  if (disconnectTimer) {
-    clearInterval(disconnectTimer);
-    disconnectTimer = null;
+function buildTabs() {
+  tabContainer.innerHTML = '';
+  for (const [key, bp] of Object.entries(BLUEPRINTS)) {
+    const btn = document.createElement('button');
+    btn.className = 'tab-btn' + (key === activeBlueprintKey ? ' active' : '');
+    btn.dataset.blueprint = key;
+    btn.textContent = bp.name;
+    btn.addEventListener('click', () => loadBlueprint(key));
+    tabContainer.appendChild(btn);
   }
 }
 
-// =============================================================================
-// Pause + reset zoom
-// =============================================================================
+// -----------------------------------------------------------------------------
+// Buttons
+// -----------------------------------------------------------------------------
 
-function setPaused(next) {
-  paused = next;
-  for (const id of Object.keys(plots)) plots[id].setPaused(paused);
-  // On resume, clear any zoom so charts return to following the live tail.
-  // Without this, new data plots off-screen of the locked zoom range.
-  if (!paused) resetAllZoom();
-  pauseBtn.textContent = paused ? '▶ Resume' : '⏸ Pause';
-  pauseBtn.classList.toggle('active', paused);
-}
-
-function resetAllZoom() {
-  // Bulk reset — pass emit:false so plots don't sync each other's
-  // just-reset range as a new fixed window.
-  for (const id of Object.keys(plots)) plots[id].resetZoom({ emit: false });
-}
+connectBtn.addEventListener('click', () => {
+  if (connection.isConnected()) connection.disconnect();
+  else connection.connect();
+});
 
 pauseBtn.addEventListener('click', () => setPaused(!paused));
-resetZoomBtn.addEventListener('click', resetAllZoom);
+resetZoomBtn.addEventListener('click', () => viewport.resetAllZoom());
+clearBtn.addEventListener('click', () => { consoleEl.textContent = ''; });
 
-// Spacebar toggles pause when not focused on an input or button.
 document.addEventListener('keydown', (e) => {
   if (e.code !== 'Space') return;
   const tag = (document.activeElement && document.activeElement.tagName) || '';
@@ -267,18 +149,17 @@ document.addEventListener('keydown', (e) => {
   setPaused(!paused);
 });
 
-connectBtn.addEventListener('click', () => {
-  if (port) disconnect();
-  else connect();
-});
+function setPaused(next) {
+  paused = next;
+  viewport.setPaused(paused);
+  if (!paused) viewport.resetAllZoom();
+  pauseBtn.textContent = paused ? '▶ Resume' : '⏸ Pause';
+  pauseBtn.classList.toggle('active', paused);
+}
 
-clearBtn.addEventListener('click', () => {
-  consoleEl.textContent = '';
-});
-
-// =============================================================================
-// Console dialog (unchanged behavior — toggle, drag to reposition)
-// =============================================================================
+// -----------------------------------------------------------------------------
+// Console dialog (toggle + drag, unchanged behavior)
+// -----------------------------------------------------------------------------
 
 const consolePill = document.getElementById('consolePill');
 const consoleDialog = document.getElementById('consoleDialog');
@@ -288,7 +169,6 @@ consolePill.addEventListener('click', () => {
   consoleDialog.classList.toggle('hidden');
   consolePill.classList.toggle('active');
 });
-
 consoleCloseBtn.addEventListener('click', () => {
   consoleDialog.classList.add('hidden');
   consolePill.classList.remove('active');
@@ -314,6 +194,11 @@ document.addEventListener('mousemove', (e) => {
   consoleDialog.style.bottom = 'auto';
 });
 
-document.addEventListener('mouseup', () => {
-  isDragging = false;
-});
+document.addEventListener('mouseup', () => { isDragging = false; });
+
+// -----------------------------------------------------------------------------
+// Boot
+// -----------------------------------------------------------------------------
+
+buildTabs();
+loadBlueprint(activeBlueprintKey);

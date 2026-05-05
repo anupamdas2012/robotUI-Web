@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pico 2 Motor Dashboard</title>
+  <title>Pico 2 Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
@@ -25,6 +25,7 @@
         <span>ToF</span>
       </div>
     </div>
+    <div class="topbar-tabs" id="tabSwitcher"></div>
     <div class="topbar-actions">
       <button id="pauseBtn" class="topbar-btn" title="Pause / Resume (space)">⏸ Pause</button>
       <button id="resetZoomBtn" class="topbar-btn" title="Reset zoom (double-click any chart)">⤢ Reset</button>
@@ -55,7 +56,20 @@
     <pre id="console"></pre>
   </div>
 
-  <script src="plot.js"></script>
+  <!-- Core (must load before views/blueprints/app) -->
+  <script src="connection.js"></script>
+  <script src="databus.js"></script>
+  <script src="viewport.js"></script>
+
+  <!-- View classes (each registers itself with the viewport's view registry) -->
+  <script src="views/plot.js"></script>
+  <script src="views/pid-controls.js"></script>
+
+  <!-- Blueprints (depend on view types existing in the registry) -->
+  <script src="blueprints/telemetry.js"></script>
+  <script src="blueprints/pid-tuning.js"></script>
+
+  <!-- Top-level wiring (uses everything above) -->
   <script src="app.js"></script>
 </body>
 </html>

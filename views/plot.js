@@ -1,31 +1,13 @@
-// Plot — one chart card with a circular buffer per series.
-//
-// Constructor:
-//   new Plot({
-//     id:        string                              // DOM id-friendly slug
-//     title:     string                              // header text
-//     container: HTMLElement                         // where to append the card
-//     series:    [{ label, color, format? }, ...]   // one entry per stream of floats
-//     maxPoints: number = 200                        // ring-buffer size
-//   })
-//
-// API:
-//   plot.push([v0, v1, ...])     // one value per series (null OK to skip a sample)
-//   plot.clear()                  // reset buffers + redraw
-//   plot.setPaused(bool)          // freeze view; buffers keep filling
-//   plot.resetZoom({emit?})       // unzoom + restore Y auto-fit
-//   plot.onZoomChanged(cb)        // cb({xMin, xMax}) when user zooms/pans
-//   plot.setVisibleRange(min,max) // programmatic zoom (no event re-emit)
-//   plot.onHoverChanged(cb)       // cb({x}) when mouse moves over canvas
-//   plot.setHoverX(x)             // draw shared crosshair at data-space X (null clears)
+// Plot view — one chart card. Now a "view" in the viewport sense:
+// constructs DOM, subscribes to its routes on the bus, and cleans up via
+// destroy(). All previous Plot behavior (pause, zoom, sync, Y-fit-to-X,
+// hover crosshair, chip-as-legend) is preserved.
 
 // -----------------------------------------------------------------------------
-// Crosshair plugin — draws a vertical dashed line at chart._hoverX (data space)
-// across the chart area whenever it's set. Registered globally so every Chart
-// instance picks it up.
+// Crosshair plugin — registered once globally, reads chart._hoverX.
 // -----------------------------------------------------------------------------
 
-const crosshairPlugin = {
+const _crosshairPlugin = {
   id: 'crosshair',
   afterDatasetsDraw(chart) {
     const x = chart._hoverX;
@@ -36,7 +18,6 @@ const crosshairPlugin = {
     if (!Number.isFinite(px)) return;
     const area = chart.chartArea;
     if (px < area.left || px > area.right) return;
-
     const ctx = chart.ctx;
     ctx.save();
     ctx.strokeStyle = 'rgba(230, 230, 230, 0.45)';
@@ -50,28 +31,39 @@ const crosshairPlugin = {
   },
 };
 
-if (typeof Chart !== 'undefined') {
-  Chart.register(crosshairPlugin);
+if (typeof Chart !== 'undefined' && !Chart._crosshairRegistered) {
+  Chart.register(_crosshairPlugin);
+  Chart._crosshairRegistered = true;
 }
 
+// -----------------------------------------------------------------------------
+// Plot class
+// -----------------------------------------------------------------------------
+
 class Plot {
-  constructor({ id, title, container, series, maxPoints = 200 }) {
-    this.id = id;
-    this.title = title;
-    this.series = series;
-    this.maxPoints = maxPoints;
+  constructor(spec, container, ctx) {
+    this.spec = spec;
+    this.id = spec.id;
+    this.title = spec.title;
+    this.series = spec.series;
+    this.maxPoints = spec.maxPoints || 200;
+    this.routes = spec.routes || [];
+    this.bus = ctx ? ctx.bus : null;
+
     this.paused = false;
     this._zoomListeners = [];
     this._hoverListeners = [];
     this._suppressZoomEvent = false;
+    this._unsubs = [];
 
-    this.buffers = series.map(() => []);
+    this.buffers = this.series.map(() => []);
     this.xBuffer = [];
     this.sampleIndex = 0;
 
     this._buildDom(container);
     this._buildChart();
     this._setupHoverSync();
+    this._subscribeRoutes();
   }
 
   _buildDom(container) {
@@ -132,12 +124,8 @@ class Plot {
         maintainAspectRatio: false,
         interaction: { intersect: false, mode: 'index' },
         plugins: {
-          // Built-in legend disabled — the value chips in the card header
-          // are the legend (clickable, with clear visible/hidden state).
           legend: { display: false },
           zoom: {
-            // Zoom/pan are gated on paused state — see _setInteractionEnabled.
-            // Live mode tracks the tail; analysis only happens while paused.
             pan: {
               enabled: false,
               mode: 'x',
@@ -164,28 +152,54 @@ class Plot {
       },
     });
 
-    this.canvas.addEventListener('dblclick', () => this.resetZoom());
+    this._dblclickHandler = () => this.resetZoom();
+    this.canvas.addEventListener('dblclick', this._dblclickHandler);
   }
 
   _setupHoverSync() {
-    this.canvas.addEventListener('mousemove', (e) => {
+    this._mousemoveHandler = (e) => {
       const rect = this.canvas.getBoundingClientRect();
       const px = e.clientX - rect.left;
       const xScale = this.chart.scales.x;
-      if (!xScale) {
-        this._emitHoverEvent(null);
-        return;
-      }
+      if (!xScale) { this._emitHoverEvent(null); return; }
       const dataX = xScale.getValueForPixel(px);
-      if (dataX == null || !Number.isFinite(dataX)) {
-        this._emitHoverEvent(null);
-      } else {
-        this._emitHoverEvent(dataX);
-      }
-    });
-    this.canvas.addEventListener('mouseleave', () => {
-      this._emitHoverEvent(null);
-    });
+      this._emitHoverEvent(Number.isFinite(dataX) ? dataX : null);
+    };
+    this._mouseleaveHandler = () => this._emitHoverEvent(null);
+    this.canvas.addEventListener('mousemove', this._mousemoveHandler);
+    this.canvas.addEventListener('mouseleave', this._mouseleaveHandler);
+  }
+
+  _subscribeRoutes() {
+    if (!this.bus) return;
+    for (const route of this.routes) {
+      const map = route.map;
+      const unsub = this.bus.subscribe(route.prefix, (parts) => {
+        try { this.push(map(parts)); } catch (e) { /* skip malformed */ }
+      });
+      this._unsubs.push(unsub);
+    }
+  }
+
+  destroy() {
+    for (const u of this._unsubs) u();
+    this._unsubs = [];
+    if (this.canvas) {
+      this.canvas.removeEventListener('dblclick', this._dblclickHandler);
+      this.canvas.removeEventListener('mousemove', this._mousemoveHandler);
+      this.canvas.removeEventListener('mouseleave', this._mouseleaveHandler);
+    }
+    if (this.chart) {
+      this.chart.destroy();
+      this.chart = null;
+    }
+    if (this.cardElement && this.cardElement.parentNode) {
+      this.cardElement.parentNode.removeChild(this.cardElement);
+    }
+    this.cardElement = null;
+    this.canvas = null;
+    this._zoomListeners = [];
+    this._hoverListeners = [];
   }
 
   _formatValue(s, value) {
@@ -198,30 +212,22 @@ class Plot {
     this.sampleIndex += 1;
     this.xBuffer.push(this.sampleIndex);
     if (this.xBuffer.length > this.maxPoints) this.xBuffer.shift();
-
     for (let i = 0; i < this.series.length; i += 1) {
       const v = values[i] != null ? values[i] : null;
       this.buffers[i].push(v);
       if (this.buffers[i].length > this.maxPoints) this.buffers[i].shift();
       this.valueElements[i].textContent = this._formatValue(this.series[i], v);
     }
-
     if (!this.paused) this._redraw();
   }
 
   _redraw() {
+    if (!this.chart) return;
     this.chart.data.labels = this.xBuffer.slice();
     for (let i = 0; i < this.series.length; i += 1) {
       this.chart.data.datasets[i].data = this.buffers[i].slice();
     }
     this.chart.update('none');
-  }
-
-  clear() {
-    this.buffers = this.series.map(() => []);
-    this.xBuffer = [];
-    this.sampleIndex = 0;
-    this._redraw();
   }
 
   setPaused(paused) {
@@ -233,6 +239,7 @@ class Plot {
   }
 
   _setInteractionEnabled(enabled) {
+    if (!this.chart) return;
     const z = this.chart.options.plugins.zoom;
     z.zoom.wheel.enabled = enabled;
     z.zoom.pinch.enabled = enabled;
@@ -241,9 +248,9 @@ class Plot {
   }
 
   resetZoom({ emit = true } = {}) {
+    if (!this.chart) return;
     this._suppressZoomEvent = true;
     this.chart.resetZoom('none');
-    // Restore Y auto-fit so live updates use Chart.js's default scaling.
     this.chart.options.scales.y.min = undefined;
     this.chart.options.scales.y.max = undefined;
     this.chart.update('none');
@@ -251,11 +258,11 @@ class Plot {
     if (emit) this._emitZoomEvent(this.chart);
   }
 
-  onZoomChanged(cb) {
-    this._zoomListeners.push(cb);
-  }
+  onZoomChanged(cb) { this._zoomListeners.push(cb); }
+  onHoverChanged(cb) { this._hoverListeners.push(cb); }
 
   setVisibleRange(xMin, xMax) {
+    if (!this.chart) return;
     this._suppressZoomEvent = true;
     if (xMin == null || xMax == null) {
       this.chart.resetZoom('none');
@@ -269,22 +276,24 @@ class Plot {
     this._suppressZoomEvent = false;
   }
 
-  // -- Series visibility (chip click toggles) --------------------------------
+  setHoverX(x) {
+    if (!this.chart) return;
+    if (this.chart._hoverX === x) return;
+    this.chart._hoverX = x;
+    this.chart.update('none');
+  }
+
   _toggleSeries(seriesIndex) {
+    if (!this.chart) return;
     const visible = this.chart.isDatasetVisible(seriesIndex);
     this.chart.setDatasetVisibility(seriesIndex, !visible);
     this.valueElements[seriesIndex].classList.toggle('muted', visible);
-    // Refit Y if we're zoomed — hiding/showing series should affect the fit.
     if (this.paused) this._refitYToVisibleX();
     this.chart.update('none');
   }
 
-  // -- Y auto-fit to current X window ----------------------------------------
-  // After a zoom/pan that narrows the X axis, refit Y to only the points that
-  // are visible. Without this, Y stays scaled for the full buffer and a quiet
-  // slice of an otherwise-spiky signal looks like a flat line.
   _refitYToVisibleX() {
-    if (!this.paused) return;
+    if (!this.chart || !this.paused) return;
     const xScale = this.chart.scales.x;
     if (!xScale) return;
     const xMin = xScale.min;
@@ -304,34 +313,16 @@ class Plot {
         if (v > yMax) yMax = v;
       }
     }
-
     if (!Number.isFinite(yMin) || !Number.isFinite(yMax)) return;
-
-    // Range-collapse safety: if the slice is flat, expand by 1% of the value
-    // (or ±1, whichever is bigger) so the line doesn't render on the axis.
     const range = yMax - yMin;
-    const margin = range > 0
-      ? range * 0.1
-      : Math.max(1, Math.abs(yMin) * 0.01);
-
+    const margin = range > 0 ? range * 0.1 : Math.max(1, Math.abs(yMin) * 0.01);
     this.chart.options.scales.y.min = yMin - margin;
     this.chart.options.scales.y.max = yMax + margin;
     this.chart.update('none');
   }
 
-  // -- Hover crosshair sync --------------------------------------------------
-  onHoverChanged(cb) {
-    this._hoverListeners.push(cb);
-  }
-
   _emitHoverEvent(x) {
     for (const cb of this._hoverListeners) cb({ x, source: this });
-  }
-
-  setHoverX(x) {
-    if (this.chart._hoverX === x) return;
-    this.chart._hoverX = x;
-    this.chart.update('none');
   }
 
   _emitZoomEvent(chart) {
@@ -342,3 +333,6 @@ class Plot {
     for (const cb of this._zoomListeners) cb({ xMin, xMax, source: this });
   }
 }
+
+// Register with the viewport's view registry.
+registerViewType('plot', (spec, container, ctx) => new Plot(spec, container, ctx));

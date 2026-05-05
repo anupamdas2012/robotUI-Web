@@ -48,12 +48,41 @@ button:hover {
   flex-shrink: 0;
 }
 
+.topbar-tabs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-shrink: 0;
+  margin: 0 auto;
+}
+
+.tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #888;
+  padding: 6px 16px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.tab-btn:hover {
+  color: #e0e0e0;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tab-btn.active {
+  color: #e0e0e0;
+  background: #2d2d44;
+  border-color: #444;
+}
+
 .topbar-actions {
   display: flex;
   gap: 8px;
   align-items: center;
   flex-shrink: 0;
-  margin-left: auto;
 }
 
 #topBar #connectBtn {
@@ -222,6 +251,50 @@ button:hover {
 .value-chip.muted {
   opacity: 0.35;
   text-decoration: line-through;
+}
+
+/* PID controls view */
+.chart-card.pid-controls .pid-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px 0;
+}
+
+.pid-slider {
+  display: grid;
+  grid-template-columns: 120px 1fr 80px;
+  align-items: center;
+  gap: 12px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.85rem;
+}
+
+.pid-label {
+  color: #aaa;
+}
+
+.pid-slider input[type="range"] {
+  width: 100%;
+  accent-color: #4cc9f0;
+}
+
+.pid-value {
+  color: #e0e0e0;
+  text-align: right;
+}
+
+.pid-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.pid-status {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.8rem;
+  color: #f59e0b;
+  min-height: 1em;
 }
 
 .val-cyan { color: #4cc9f0; }
