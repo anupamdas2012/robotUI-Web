@@ -207,6 +207,23 @@ button:hover {
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
+.value-chip {
+  cursor: pointer;
+  user-select: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.value-chip:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.value-chip.muted {
+  opacity: 0.35;
+  text-decoration: line-through;
+}
+
 .val-cyan { color: #4cc9f0; }
 .val-pink { color: #f72585; }
 .val-green { color: #4ade80; }

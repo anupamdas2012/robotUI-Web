@@ -84,6 +84,17 @@ for (const id of Object.keys(plots)) {
   });
 }
 
+// Hover crosshair sync — hovering any chart draws a vertical line at the same
+// X on every chart. Listener is attached to all plots (including the source)
+// so the originating plot also gets the hover indicator.
+for (const id of Object.keys(plots)) {
+  plots[id].onHoverChanged(({ x }) => {
+    for (const otherId of Object.keys(plots)) {
+      plots[otherId].setHoverX(x);
+    }
+  });
+}
+
 // =============================================================================
 // Routes — map a $-prefix message to plot.push() calls
 // =============================================================================
