@@ -46,7 +46,6 @@ let activeBlueprintKey = boardBlueprints.length > 0 ? boardBlueprints[0].id : nu
 const connectBtn = document.getElementById('connectBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const resetZoomBtn = document.getElementById('resetZoomBtn');
-const themeBtn = document.getElementById('themeBtn');
 const clearBtn = document.getElementById('clearBtn');
 const consoleEl = document.getElementById('console');
 const tabContainer = document.getElementById('tabSwitcher');
@@ -191,20 +190,9 @@ pauseBtn.addEventListener('click', () => setPaused(!paused));
 resetZoomBtn.addEventListener('click', () => viewport.resetAllZoom());
 clearBtn.addEventListener('click', () => { consoleEl.textContent = ''; });
 
-// Cycle through registered themes on click; show the next theme's name in
-// the button title so it's discoverable.
-themeBtn.addEventListener('click', () => {
-  const ids = Object.keys(THEMES);
-  const cur = getActiveTheme().id;
-  const next = ids[(ids.indexOf(cur) + 1) % ids.length];
-  setTheme(next);
-  updateThemeBtnLabel();
-});
-
-function updateThemeBtnLabel() {
-  themeBtn.textContent = `🎨 ${getActiveTheme().name}`;
-}
-updateThemeBtnLabel();
+// Theme + gradient are configured in config.js and applied by the inline
+// <head> script before render. setTheme(id) and the data-gradient attr can
+// still be set at runtime (e.g. from devtools) without persisting.
 
 document.addEventListener('keydown', (e) => {
   if (e.code !== 'Space') return;

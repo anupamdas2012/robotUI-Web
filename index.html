@@ -7,11 +7,14 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
-  <!-- Set theme attribute before stylesheet renders to avoid initial flash. -->
+  <!-- Appearance config (theme + gradient) — edit config.js to change. -->
+  <script src="config.js"></script>
   <script>
     (function () {
-      var t = localStorage.getItem('theme') || 'original';
-      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-theme', CONFIG.theme || 'original');
+      document.addEventListener('DOMContentLoaded', function () {
+        document.body.setAttribute('data-gradient', CONFIG.gradient || 'none');
+      });
     })();
   </script>
   <link rel="stylesheet" href="style.css">
@@ -22,7 +25,6 @@
     <div class="topbar-status" id="statusPills"></div>
     <div class="topbar-tabs" id="tabSwitcher"></div>
     <div class="topbar-actions">
-      <button id="themeBtn" class="topbar-btn" title="Switch theme">🎨 Theme</button>
       <button id="pauseBtn" class="topbar-btn" title="Pause / Resume (space)">⏸ Pause</button>
       <button id="resetZoomBtn" class="topbar-btn" title="Reset zoom (double-click any chart)">⤢ Reset</button>
       <button id="connectBtn">Connect</button>

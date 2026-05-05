@@ -129,7 +129,11 @@ const THEMES = {
   },
 };
 
-let _activeTheme = THEMES[localStorage.getItem('theme') || 'original'] || THEMES.original;
+// Initial theme is read from config.js's CONFIG.theme. Runtime setTheme()
+// is still callable (e.g. from devtools / future programmatic switching);
+// it just doesn't persist anywhere — config.js is the source of truth.
+const _initialThemeId = (typeof CONFIG !== 'undefined' && CONFIG.theme) || 'original';
+let _activeTheme = THEMES[_initialThemeId] || THEMES.original;
 const _themeListeners = [];
 
 function getActiveTheme() {
@@ -139,7 +143,6 @@ function getActiveTheme() {
 function setTheme(id) {
   if (!THEMES[id]) return;
   _activeTheme = THEMES[id];
-  localStorage.setItem('theme', id);
   document.documentElement.dataset.theme = id;
   for (const cb of _themeListeners) {
     try { cb(_activeTheme); } catch (e) { console.error(e); }

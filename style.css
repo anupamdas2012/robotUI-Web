@@ -35,6 +35,7 @@ html[data-theme="original"] {
   --hover-tint:        rgba(255, 255, 255, 0.04);
   --hover-tint-2:      rgba(255, 255, 255, 0.06);
   --slider-accent:     #4cc9f0;
+  --accent-rgb:        76, 201, 240;
 }
 
 html[data-theme="gruvbox"] {
@@ -69,6 +70,7 @@ html[data-theme="gruvbox"] {
   --hover-tint:        rgba(235, 219, 178, 0.04);
   --hover-tint-2:      rgba(235, 219, 178, 0.06);
   --slider-accent:     #fabd2f;
+  --accent-rgb:        250, 189, 47;
 }
 
 html[data-theme="nord"] {
@@ -103,6 +105,7 @@ html[data-theme="nord"] {
   --hover-tint:        rgba(216, 222, 233, 0.04);
   --hover-tint-2:      rgba(216, 222, 233, 0.06);
   --slider-accent:     #88c0d0;
+  --accent-rgb:        136, 192, 208;
 }
 
 html[data-theme="azure"] {
@@ -137,6 +140,7 @@ html[data-theme="azure"] {
   --hover-tint:        rgba(240, 246, 252, 0.04);
   --hover-tint-2:      rgba(240, 246, 252, 0.06);
   --slider-accent:     #2899f5;
+  --accent-rgb:        40, 153, 245;
 }
 
 html[data-theme="apple"] {
@@ -171,6 +175,7 @@ html[data-theme="apple"] {
   --hover-tint:        rgba(255, 255, 255, 0.04);
   --hover-tint-2:      rgba(255, 255, 255, 0.06);
   --slider-accent:     #0a84ff;
+  --accent-rgb:        10, 132, 255;
 }
 
 html[data-theme="forest"] {
@@ -205,6 +210,7 @@ html[data-theme="forest"] {
   --hover-tint:        rgba(211, 198, 170, 0.04);
   --hover-tint-2:      rgba(211, 198, 170, 0.06);
   --slider-accent:     #a7c080;
+  --accent-rgb:        167, 192, 128;
 }
 
 html[data-theme="mocha"] {
@@ -240,6 +246,7 @@ html[data-theme="mocha"] {
   --hover-tint:        rgba(205, 214, 244, 0.04);
   --hover-tint-2:      rgba(205, 214, 244, 0.06);
   --slider-accent:     #89b4fa;             /* blue */
+  --accent-rgb:        137, 180, 250;
 }
 
 * {
@@ -255,6 +262,46 @@ body {
   padding: 16px;
   padding-top: 60px;
   padding-bottom: 56px;
+}
+
+/* Gradient styles applied INSIDE each chart's plotting canvas.
+   Each starts from the active theme's accent color (--accent-rgb) and
+   fades to transparent. Selected via body[data-gradient="..."];
+   cycled by the ✨ button. The card itself stays its normal color so
+   only the data viz area shows the gradient. */
+
+body[data-gradient="wash"] .chart-card canvas {
+  background:
+    linear-gradient(180deg,
+      rgba(var(--accent-rgb), 0.18) 0%,
+      transparent 70%
+    );
+}
+
+body[data-gradient="spotlight"] .chart-card canvas {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 100%,
+      rgba(var(--accent-rgb), 0.22) 0%,
+      transparent 75%
+    );
+}
+
+body[data-gradient="diagonal"] .chart-card canvas {
+  background:
+    linear-gradient(135deg,
+      rgba(var(--accent-rgb), 0.22) 0%,
+      transparent 55%
+    );
+}
+
+body[data-gradient="dual"] .chart-card canvas {
+  background:
+    linear-gradient(180deg,
+      rgba(var(--accent-rgb), 0.18) 0%,
+      transparent 40%,
+      transparent 60%,
+      rgba(var(--accent-rgb), 0.16) 100%
+    );
 }
 
 button {
