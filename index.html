@@ -23,7 +23,6 @@
   <nav id="topBar">
     <!-- Status pills are generated from the active board manifest at boot. -->
     <div class="topbar-status" id="statusPills"></div>
-    <div class="topbar-tabs" id="tabSwitcher"></div>
     <div class="topbar-actions">
       <button id="pauseBtn" class="topbar-btn" title="Pause / Resume (space)">⏸ Pause</button>
       <button id="resetZoomBtn" class="topbar-btn" title="Reset zoom (double-click any chart)">⤢ Reset</button>
@@ -36,6 +35,8 @@
   </div>
 
   <nav id="bottomBar">
+    <div class="bottombar-spacer"></div>
+    <div class="tab-switcher" id="tabSwitcher"></div>
     <div class="bottombar-pills">
       <div class="status-pill console-pill" id="consolePill">
         <span>Serial Console</span>
