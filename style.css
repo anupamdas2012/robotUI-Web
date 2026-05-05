@@ -284,6 +284,39 @@ body[data-gradient="spotlight"] .chart-card canvas {
       rgba(var(--accent-rgb), 0.22) 0%,
       transparent 75%
     );
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  animation: var(--anim-spotlight-rise);
+}
+
+/* Spotlight gradient blooms upward from its bottom anchor. The chart
+   line itself (drawn on the canvas pixel grid by Chart.js) is unaffected
+   — only the CSS background-image animates. Fires on page load and on
+   every blueprint switch (Viewport recreates the canvas).
+
+   Aggressive ease-out — quick initial grow, then a long slow settle.
+   Curve hits ~85% size in the first ~25% of the duration, then drifts
+   to 100% over the rest. */
+@keyframes spotlight-rise {
+  from { background-size: 100% 0%; }
+  to   { background-size: 100% 100%; }
+}
+
+/* Animation registry. Each animation is wired through a CSS variable so
+   the global config.js uiAnimations flag (and prefers-reduced-motion)
+   can disable them all at once by overriding the variables to `none`. */
+:root {
+  --anim-spotlight-rise: spotlight-rise 1.1s cubic-bezier(0.05, 1, 0.2, 1) backwards;
+}
+
+html[data-animations="off"] {
+  --anim-spotlight-rise: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --anim-spotlight-rise: none;
+  }
 }
 
 body[data-gradient="diagonal"] .chart-card canvas {

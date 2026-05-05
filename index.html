@@ -12,6 +12,10 @@
   <script>
     (function () {
       document.documentElement.setAttribute('data-theme', CONFIG.theme || 'original');
+      document.documentElement.setAttribute(
+        'data-animations',
+        CONFIG.uiAnimations === false ? 'off' : 'on'
+      );
       document.addEventListener('DOMContentLoaded', function () {
         document.body.setAttribute('data-gradient', CONFIG.gradient || 'none');
       });
