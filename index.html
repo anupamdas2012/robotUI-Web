@@ -12,6 +12,7 @@
   <script>
     (function () {
       document.documentElement.setAttribute('data-theme', CONFIG.theme || 'original');
+      document.documentElement.setAttribute('data-chrome', CONFIG.chrome || 'none');
       document.documentElement.setAttribute(
         'data-animations',
         CONFIG.uiAnimations === false ? 'off' : 'on'

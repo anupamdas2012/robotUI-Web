@@ -40,12 +40,11 @@ html[data-theme="original"] {
 
 /* TET Vision — pure-black "Oblivion" HUD. Surface palette only here; the
    chrome layer (corner brackets, ALL-CAPS mono titles, hairline borders,
-   hatch ruler) lives further down under the html[data-theme="tetvision"]
-   .chart-card { … } cascade so it doesn't bleed into other themes.
+   hatched paused state) lives further down under html[data-chrome="tet"]
+   and is independently togglable from this palette via CONFIG.chrome.
 
    --accent-rgb stays cyan (signature glow). Orange-red (#ff5a3a, 255,90,58)
-   is reserved for alarm: --status-off, --paused, the fault hatch overlay,
-   and the connect button when disconnected. */
+   is reserved for alarm: --status-off, --paused, the fault hatch overlay. */
 html[data-theme="tetvision"] {
   --bg:                #000000;             /* pure black */
   --panel:             #050a0e;             /* barely-tinted chrome */
@@ -392,12 +391,16 @@ body[data-gradient="dual"] .chart-card canvas {
     );
 }
 
-/* TET hatch — diagonal alarm-orange stripes laid over a soft cyan spotlight.
-   Designed for the tetvision theme but works under any palette that defines
-   --tet-alarm-rgb (defaults to a sensible orange-red below for non-TET use).
-   The hatch is faint; the chart line still reads first. */
+/* TET tokens with palette-agnostic defaults. The tetvision palette block
+   above overrides --tet-bracket to its signature cyan; under any other
+   palette these defaults take over so the chrome layer (data-chrome="tet")
+   still paints with a sensible color. The hatch gradient + paused-state
+   overlay both read --tet-alarm-rgb directly, and intentionally stay the
+   TET orange-red across all palettes — that's a chrome design feature,
+   not a palette concern. */
 :root {
   --tet-alarm-rgb: 255, 90, 58;
+  --tet-bracket: var(--text-dim);
 }
 
 body[data-gradient="hatch"] .chart-card canvas {
@@ -892,8 +895,12 @@ button:hover {
 /* ============================================================
    TET Vision chrome layer
    ============================================================
-   Active only when html[data-theme="tetvision"]. Layers on top of the
-   surface palette set above by:
+   Active when html[data-chrome="tet"] (driven by CONFIG.chrome). Pure
+   typography + ornament — no palette colors live here, so any theme
+   (apple, mocha, gruvbox, …) can wear this chrome via the new chrome
+   axis in config.js. Brackets paint with --tet-bracket which defaults
+   to var(--text-dim) for the active palette, and is overridden to a
+   signature cyan inside the tetvision palette. Adds:
      - replacing .chart-card's full border with 4 corner brackets (8 layered
        gradients — 2 hairlines per corner)
      - hairline 1 px panel borders, no border-radius (sharp military feel)
@@ -906,27 +913,27 @@ button:hover {
    None of this leaks to other themes. Remove this block to revert.
    ============================================================ */
 
-html[data-theme="tetvision"] body {
+html[data-chrome="tet"] body {
   font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 }
 
 /* Sharp corners + hairline borders across the chrome. */
-html[data-theme="tetvision"] #topBar,
-html[data-theme="tetvision"] .topbar-btn,
-html[data-theme="tetvision"] #topBar #connectBtn,
-html[data-theme="tetvision"] .status-pill,
-html[data-theme="tetvision"] .tab-btn,
-html[data-theme="tetvision"] .console-pill,
-html[data-theme="tetvision"] .console-dialog,
-html[data-theme="tetvision"] #console {
+html[data-chrome="tet"] #topBar,
+html[data-chrome="tet"] .topbar-btn,
+html[data-chrome="tet"] #topBar #connectBtn,
+html[data-chrome="tet"] .status-pill,
+html[data-chrome="tet"] .tab-btn,
+html[data-chrome="tet"] .console-pill,
+html[data-chrome="tet"] .console-dialog,
+html[data-chrome="tet"] #console {
   border-radius: 0;
 }
 
-html[data-theme="tetvision"] .topbar-btn,
-html[data-theme="tetvision"] #topBar #connectBtn,
-html[data-theme="tetvision"] .status-pill,
-html[data-theme="tetvision"] .console-pill,
-html[data-theme="tetvision"] .tab-btn {
+html[data-chrome="tet"] .topbar-btn,
+html[data-chrome="tet"] #topBar #connectBtn,
+html[data-chrome="tet"] .status-pill,
+html[data-chrome="tet"] .console-pill,
+html[data-chrome="tet"] .tab-btn {
   font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -934,7 +941,7 @@ html[data-theme="tetvision"] .tab-btn {
   font-weight: 500;
 }
 
-html[data-theme="tetvision"] .tab-btn.active {
+html[data-chrome="tet"] .tab-btn.active {
   /* TET active state: bracketed-rule background, no glow blur. */
   box-shadow: inset 0 -2px 0 var(--status-on);
   background: transparent;
@@ -945,7 +952,7 @@ html[data-theme="tetvision"] .tab-btn.active {
 /* Chart card — corner brackets only, no full border. The 8 background
    layers paint two 14×1 px hairlines at each of the four corners. The
    card fill stays underneath via background-color. */
-html[data-theme="tetvision"] .chart-card {
+html[data-chrome="tet"] .chart-card {
   background-color: var(--card);
   background-image:
     /* top-left corner: horizontal + vertical hairline */
@@ -979,7 +986,7 @@ html[data-theme="tetvision"] .chart-card {
 /* Paused state: brackets flip to orange-red, plus diagonal hatch over the
    chart canvas. Background-image overrides only the bracket layers; the
    underlying canvas hatch is on the canvas element below. */
-html[data-theme="tetvision"] .chart-card.paused {
+html[data-chrome="tet"] .chart-card.paused {
   background-image:
     linear-gradient(to right,  var(--paused), var(--paused)),
     linear-gradient(to bottom, var(--paused), var(--paused)),
@@ -992,7 +999,7 @@ html[data-theme="tetvision"] .chart-card.paused {
   box-shadow: none;
 }
 
-html[data-theme="tetvision"] .chart-card.paused canvas {
+html[data-chrome="tet"] .chart-card.paused canvas {
   /* Layered: theme's accent gradient (cyan) underneath, alarm hatch on top.
      repeating-linear-gradient draws the iconic Oblivion fault stripes. */
   background:
@@ -1012,7 +1019,7 @@ html[data-theme="tetvision"] .chart-card.paused canvas {
 /* Chart titles: ALL CAPS monospace with technical preamble. The ::before
    pseudo paints a small hash-bar dressing strip ahead of the title to
    echo the reference's "▎▎▎▎ DATALINK" rhythm. */
-html[data-theme="tetvision"] .chart-header h2 {
+html[data-chrome="tet"] .chart-header h2 {
   font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
   font-size: 0.78rem;
   font-weight: 500;
@@ -1024,7 +1031,7 @@ html[data-theme="tetvision"] .chart-header h2 {
   gap: 10px;
 }
 
-html[data-theme="tetvision"] .chart-header h2::before {
+html[data-chrome="tet"] .chart-header h2::before {
   content: '';
   display: inline-block;
   width: 28px;
@@ -1038,7 +1045,7 @@ html[data-theme="tetvision"] .chart-header h2::before {
   );
 }
 
-html[data-theme="tetvision"] .chart-header h2::after {
+html[data-chrome="tet"] .chart-header h2::after {
   content: 'READOUT.PASS';
   font-size: 0.55rem;
   letter-spacing: 0.2em;
@@ -1046,19 +1053,19 @@ html[data-theme="tetvision"] .chart-header h2::after {
   margin-left: 4px;
 }
 
-html[data-theme="tetvision"] .chart-card.paused .chart-header h2::after {
+html[data-chrome="tet"] .chart-card.paused .chart-header h2::after {
   content: 'READOUT.PAUSED';
   color: var(--paused);
 }
 
 /* Current-values row: tabular numerals for that data-readout vibe. */
-html[data-theme="tetvision"] .current-values {
+html[data-chrome="tet"] .current-values {
   font-feature-settings: 'tnum' 1;
   letter-spacing: 0.04em;
 }
 
 /* Top bar: thin hairline, no rounded chrome, more spacing. */
-html[data-theme="tetvision"] #topBar {
+html[data-chrome="tet"] #topBar {
   background: var(--panel);
   border-bottom: 1px solid var(--panel-border);
   letter-spacing: 0.1em;
@@ -1068,31 +1075,31 @@ html[data-theme="tetvision"] #topBar {
    We can't read the JS state from CSS without a class hook, so leave it
    neutral here; if you want orange-red CTA, add `connectBtn.classList
    .toggle('disconnected', !connected)` in app.js and target that class. */
-html[data-theme="tetvision"] #topBar #connectBtn {
+html[data-chrome="tet"] #topBar #connectBtn {
   border: 1px solid var(--button-border);
   color: var(--text);
   background: var(--button-bg);
   padding: 6px 18px;
 }
 
-html[data-theme="tetvision"] #topBar #connectBtn:hover {
+html[data-chrome="tet"] #topBar #connectBtn:hover {
   border-color: var(--tet-bracket);
   color: var(--tet-bracket);
 }
 
 /* Console dialog: sharpen, drop the rotating gradient outline. */
-html[data-theme="tetvision"] .console-dialog {
+html[data-chrome="tet"] .console-dialog {
   border: 1px solid var(--panel-border);
   background: var(--console-dialog-bg);
   animation: var(--anim-console-dialog);  /* keep pop-in, drop spin */
   box-shadow: 0 0 0 1px var(--card-border);
 }
 
-html[data-theme="tetvision"] .console-dialog-header {
+html[data-chrome="tet"] .console-dialog-header {
   border-bottom: 1px solid var(--panel-border);
 }
 
-html[data-theme="tetvision"] .console-dialog-header h2 {
+html[data-chrome="tet"] .console-dialog-header h2 {
   font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
   font-size: 0.78rem;
   text-transform: uppercase;
@@ -1100,14 +1107,14 @@ html[data-theme="tetvision"] .console-dialog-header h2 {
   color: var(--text-dim);
 }
 
-html[data-theme="tetvision"] #console {
+html[data-chrome="tet"] #console {
   border: 1px solid var(--panel-border);
   border-radius: 0;
 }
 
 /* PID controls: keep functional layout, restyle labels. */
-html[data-theme="tetvision"] .pid-label,
-html[data-theme="tetvision"] .pid-value {
+html[data-chrome="tet"] .pid-label,
+html[data-chrome="tet"] .pid-value {
   text-transform: uppercase;
   letter-spacing: 0.15em;
   font-size: 0.78rem;

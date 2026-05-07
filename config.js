@@ -1,16 +1,29 @@
 // Dashboard appearance config. Edit values here and reload to apply.
-// theme:        one of the ids registered in theme.js's THEMES
-//               ('original' | 'tetvision' | 'mocha' | 'gruvbox' | 'nord' |
-//                'forest' | 'azure' | 'apple')
-// gradient:     one of the styles defined in style.css
-//               ('none' | 'wash' | 'spotlight' | 'diagonal' | 'dual' | 'hatch')
-//               'hatch' is the TET-Vision diagonal alarm-stripe overlay.
-// uiAnimations: master switch for all UI animations (gradient rise, future
-//               card transitions, etc.). Set false to make everything snap
-//               into place instantly.
+//
+// Three orthogonal axes — mix freely.
+//
+// theme:    palette only (surface colors + chart series).
+//           'original' | 'tetvision' | 'mocha' | 'gruvbox' | 'nord' |
+//           'forest' | 'azure' | 'apple'
+//
+// chrome:   panel typography + ornament. Independent from palette, so you
+//           can pair e.g. 'apple' colors with TET corner brackets + ALL-CAPS
+//           titles.
+//           'none' (default rounded-card material look)
+//           'tet'  (Oblivion HUD: corner brackets, hairline borders, ALL-CAPS
+//                  monospace, READOUT.PASS suffix, hatched paused state)
+//
+// gradient: chart-canvas background fill.
+//           'none' | 'wash' | 'spotlight' | 'diagonal' | 'dual' | 'hatch'
+//           'hatch' is the diagonal alarm-stripe overlay (great with chrome=tet
+//           but works under any palette via the --tet-alarm-rgb token).
+//
+// uiAnimations: master switch for all UI animations (gradient rise, dialog
+//               pop-in, etc.). Set false to make everything snap into place.
 
 const CONFIG = {
   theme:        'tetvision',
+  chrome:       'tet',
   gradient:     'hatch',
   uiAnimations: true,
 };
