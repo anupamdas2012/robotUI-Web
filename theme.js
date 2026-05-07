@@ -29,6 +29,26 @@ const THEMES = {
     gridColor: 'rgba(255, 255, 255, 0.06)',
   },
 
+  // TET Vision — pure-black "Oblivion" HUD. Cyan/white/teal series, with
+  // orange-red reserved for alarm states (status-off, paused border, fault
+  // hatch). Companion CSS adds chrome (corner brackets, ALL-CAPS mono titles,
+  // hairline borders) under html[data-theme="tetvision"]. Pair with the
+  // 'hatch' gradient in config.js for the signature diagonal stripe overlay.
+  tetvision: {
+    id: 'tetvision',
+    name: 'TET Vision (Oblivion)',
+    series: {
+      cyan:   '#62d6ff',  // TET signature cyan
+      pink:   '#ffb38a',  // pale ember (used sparingly; not the alarm red)
+      green:  '#5be8c4',  // mint-teal
+      amber:  '#ffd479',  // dim amber readout
+      purple: '#9aa8b3',  // gunmetal — repurposed as a neutral series slot
+      red:    '#ff5a3a',  // TET orange-red — alarm only
+    },
+    crosshair: 'rgba(216, 239, 255, 0.5)',
+    gridColor: 'rgba(98, 214, 255, 0.06)',
+  },
+
   // Catppuccin Mocha for UI surfaces + Tableau 10 for chart series.
   // The slot names are preserved across themes so blueprints don't change.
   mocha: {
