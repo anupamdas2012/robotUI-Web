@@ -1001,12 +1001,14 @@ html[data-chrome="tet"] .chart-card.paused {
 
 html[data-chrome="tet"] .chart-card.paused canvas {
   /* Layered: theme's accent gradient (cyan) underneath, alarm hatch on top.
-     repeating-linear-gradient draws the iconic Oblivion fault stripes. */
+     repeating-linear-gradient draws the iconic Oblivion fault stripes.
+     Hatch alpha kept just above the always-on data-gradient="hatch" rule
+     (0.10) so paused state still reads as "more alarmed" than ambient. */
   background:
     repeating-linear-gradient(
       135deg,
-      rgba(var(--tet-alarm-rgb), 0.18) 0,
-      rgba(var(--tet-alarm-rgb), 0.18) 5px,
+      rgba(var(--tet-alarm-rgb), 0.12) 0,
+      rgba(var(--tet-alarm-rgb), 0.12) 5px,
       transparent 5px,
       transparent 14px
     ),
