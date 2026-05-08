@@ -349,6 +349,32 @@ for (const panel of DOCK_PANELS) {
 }
 
 // -----------------------------------------------------------------------------
+// Theme toggle pill — flips between tetvision (dark) and tetlight (light).
+// Icon shows what you'll switch TO on click (sun = light, moon = dark).
+// Session-only; reload returns to CONFIG.theme.
+// -----------------------------------------------------------------------------
+
+const themeTogglePill = document.getElementById('themeTogglePill');
+const themeToggleIcon = document.getElementById('themeToggleIcon');
+
+function updateThemeToggleIcon() {
+  if (!themeToggleIcon) return;
+  const cur = (typeof getActiveTheme === 'function') ? getActiveTheme().id : '';
+  // On tetvision (dark) → next click goes light → show sun.
+  // Otherwise → next click goes dark → show moon.
+  themeToggleIcon.textContent = cur === 'tetvision' ? '☀' : '☾';
+}
+
+themeTogglePill.addEventListener('click', () => {
+  const cur = getActiveTheme().id;
+  const next = cur === 'tetvision' ? 'tetlight' : 'tetvision';
+  setTheme(next);
+  updateThemeToggleIcon();
+});
+
+updateThemeToggleIcon();
+
+// -----------------------------------------------------------------------------
 // Boot
 // -----------------------------------------------------------------------------
 

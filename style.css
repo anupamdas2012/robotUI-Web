@@ -1040,9 +1040,22 @@ body[data-teleop="open"] #teleopPanel {
   justify-self: end;
 }
 
-.bottombar-spacer {
-  /* placeholder for grid balance + any future bottom-left content */
+.bottombar-pills-left {
   justify-self: start;
+}
+
+/* Theme toggle — small icon-only pill, leftmost in the bottombar.
+   Click to flip between tetvision (dark) and tetlight (light). */
+.theme-toggle-pill {
+  cursor: pointer;
+  user-select: none;
+  padding: 5px 10px;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.theme-toggle-pill:hover {
+  background: var(--button-bg-hover);
 }
 
 .console-pill {
