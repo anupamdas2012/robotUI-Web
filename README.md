@@ -66,6 +66,7 @@ const CONFIG = {
 |---|---|
 | `original` | Dark Material — neutral grays, vibrant accent series |
 | `tetvision` | Pure-black *Oblivion* HUD — cyan series, orange-red alarm |
+| `tetlight` | Paired light variant — near-white chassis with deep saturated accents and elevation shadows |
 | `apple` | macOS Dark — System palette, high contrast |
 | `azure` | Microsoft / GitHub Dark — corporate enterprise tone |
 | `mocha` | Catppuccin Mocha + Tableau 10 — soft, editorial |
@@ -93,7 +94,8 @@ const CONFIG = {
 
 ### Combinations worth trying
 
-- `tetvision` / `tet` / `hatch` — full Oblivion HUD (default)
+- `tetvision` / `tet` / `hatch` — full Oblivion HUD, dark cinematic (default)
+- `tetlight` / `tet` / `hatch` — paired light variant, near-white with elevation shadows
 - `apple` / `tet` / `spotlight` — clean ops console with TET ornament
 - `azure` / `tet` / `hatch` — enterprise dashboard with alarm stripes
 - `mocha` / `none` / `wash` — soft editorial
@@ -113,7 +115,13 @@ document.body.setAttribute('data-gradient', 'spotlight');
 
 Two files. In `theme.js`, add an entry to `THEMES` with `series` colors keyed by semantic slot (`cyan`, `pink`, `green`, `amber`, `purple`, `red`). In `style.css`, add an `html[data-theme="ID"]` block defining surface variables (`--bg`, `--card`, `--text`, etc.) — copy any existing block as a template. Add the new ID to the comment listing in `config.js`.
 
-The TET chrome works under any palette, painting brackets in the active palette's `--text-dim` by default. Override `--tet-bracket` inside your palette block to give your theme a signature bracket color (see how `tetvision` overrides it to cyan).
+The TET chrome reads three palette-overridable tokens, all with sensible `:root` defaults that work under any palette:
+
+- `--tet-bracket` — corner-bracket stroke color (defaults to the active palette's `--text-dim`). Override to give your theme a signature bracket color.
+- `--tet-alarm-rgb` — alarm color (rgb triplet, no `rgba()`) for the paused-state hatch and the ambient `gradient: 'hatch'` overlay. Defaults to TET orange-red `255, 90, 58`. Override when the default clashes with the palette (e.g. a near-white chassis can't reasonably wear the bright orange).
+- `--card-shadow` — card elevation. The chrome defers to whatever the palette defines, so dark palettes typically set `0 0 0 transparent` (no glow needed; color stepping does the work) and light palettes define a layered shadow for depth.
+
+See `tetvision` (cinematic pure-black) and `tetlight` (paired light variant) for reference implementations of both directions.
 
 ---
 

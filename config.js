@@ -3,8 +3,8 @@
 // Three orthogonal axes — mix freely.
 //
 // theme:    palette only (surface colors + chart series).
-//           'original' | 'tetvision' | 'mocha' | 'gruvbox' | 'nord' |
-//           'forest' | 'azure' | 'apple'
+//           'original' | 'tetvision' | 'tetlight' | 'mocha' | 'gruvbox' |
+//           'nord' | 'forest' | 'azure' | 'apple'
 //
 // chrome:   panel typography + ornament. Independent from palette, so you
 //           can pair e.g. 'apple' colors with TET corner brackets + ALL-CAPS

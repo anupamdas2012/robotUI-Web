@@ -32,7 +32,7 @@ const THEMES = {
   // TET Vision — pure-black "Oblivion" HUD. Cyan/white/teal series, with
   // orange-red reserved for alarm states (status-off, paused border, fault
   // hatch). Companion CSS adds chrome (corner brackets, ALL-CAPS mono titles,
-  // hairline borders) under html[data-theme="tetvision"]. Pair with the
+  // hairline borders) under html[data-chrome="tet"]. Pair with the
   // 'hatch' gradient in config.js for the signature diagonal stripe overlay.
   tetvision: {
     id: 'tetvision',
@@ -47,6 +47,28 @@ const THEMES = {
     },
     crosshair: 'rgba(216, 239, 255, 0.5)',
     gridColor: 'rgba(98, 214, 255, 0.06)',
+  },
+
+  // TET Vision (Light) — paired light variant. Near-white chassis with
+  // saturated mid-tone accents tuned for legibility on white (deep sky
+  // blue, saturated teal, true red — the bright TET cyan / orange-red
+  // would read pastel-peachy on white, so they're darkened). Designed
+  // to wear chrome:'tet'; the companion CSS palette block defines a
+  // proper layered drop-shadow for elevation since light themes need
+  // shadows to imply layering where dark ones can rely on color stepping.
+  tetlight: {
+    id: 'tetlight',
+    name: 'TET Vision (Light)',
+    series: {
+      cyan:   '#0085c8',  // deep sky blue
+      pink:   '#d6336c',  // deep rose
+      green:  '#1c8a7d',  // saturated teal
+      amber:  '#e8590c',  // rich orange
+      purple: '#6f42c1',  // deep violet
+      red:    '#dc2626',  // true red — alarm
+    },
+    crosshair: 'rgba(0, 0, 0, 0.4)',
+    gridColor: 'rgba(0, 0, 0, 0.06)',
   },
 
   // Catppuccin Mocha for UI surfaces + Tableau 10 for chart series.
