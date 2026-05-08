@@ -49,6 +49,9 @@ class Teleop {
     const card = document.createElement('div');
     card.className = 'chart-card teleop-card';
     card.dataset.viewId = this.id;
+    // 'grid' style = oscilloscope/coordinate-plotter aesthetic. Future
+    // variants ('gimbal', 'reticle', 'quadrant') would set a different value.
+    card.dataset.teleopStyle = (this.spec.config && this.spec.config.style) || 'grid';
 
     const header = document.createElement('div');
     header.className = 'chart-header';
@@ -69,10 +72,10 @@ class Teleop {
     const pad = document.createElement('div');
     pad.className = 'teleop-pad';
 
-    this.btnFwd   = this._mkBtn('teleop-btn teleop-btn-fwd',   '▲', 'Forward');
-    this.btnBack  = this._mkBtn('teleop-btn teleop-btn-back',  '▼', 'Back');
-    this.btnLeft  = this._mkBtn('teleop-btn teleop-btn-left',  '◀', 'Turn left');
-    this.btnRight = this._mkBtn('teleop-btn teleop-btn-right', '▶', 'Turn right');
+    this.btnFwd   = this._mkBtn('teleop-btn teleop-btn-fwd',   '△', 'Forward');
+    this.btnBack  = this._mkBtn('teleop-btn teleop-btn-back',  '▽', 'Back');
+    this.btnLeft  = this._mkBtn('teleop-btn teleop-btn-left',  '◁', 'Turn left');
+    this.btnRight = this._mkBtn('teleop-btn teleop-btn-right', '▷', 'Turn right');
 
     const joy = document.createElement('div');
     joy.className = 'teleop-joystick';
@@ -243,16 +246,19 @@ class Teleop {
     if (!this.statusChip) return;
     if (!this.connection || !this.connection.isConnected()) {
       this.statusChip.dataset.state = 'offline';
-      this.statusChip.textContent = 'offline';
+      this.statusChip.textContent = 'OFFLINE';
       return;
     }
     if (this._activeCmd) {
       const { left, right } = this._activeCmd;
       this.statusChip.dataset.state = 'driving';
-      this.statusChip.textContent = `${left} / ${right}`;
+      // Signed, fixed-width: '+080' / '-005' / '+000' — keeps the
+      // chip width stable while the operator drives.
+      const fmt = (n) => (n >= 0 ? '+' : '-') + String(Math.abs(n)).padStart(3, '0');
+      this.statusChip.textContent = `L${fmt(left)} R${fmt(right)}`;
     } else {
       this.statusChip.dataset.state = 'idle';
-      this.statusChip.textContent = 'idle';
+      this.statusChip.textContent = 'IDLE';
     }
   }
 
