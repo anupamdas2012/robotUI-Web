@@ -646,7 +646,7 @@ body[data-teleop="open"] #telemetryPanel {
   right: 0;
   bottom: 56px;         /* above bottombar */
   width: var(--dock-w);
-  background: var(--panel);
+  background: transparent;
   border-left: 1px solid var(--panel-border);
   padding: 12px;
   z-index: 50;
