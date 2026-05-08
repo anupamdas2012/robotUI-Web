@@ -72,12 +72,14 @@
   <!-- View classes (each registers itself with the view registry) -->
   <script src="views/plot.js"></script>
   <script src="views/pid-controls.js"></script>
+  <script src="views/vision.js"></script>
 
   <!-- Board manifests + blueprints (each registers itself).
        Add new boards by appending their manifest + blueprint scripts here. -->
   <script src="boards/pico/manifest.js"></script>
   <script src="boards/pico/blueprints/telemetry.js"></script>
   <script src="boards/pico/blueprints/pid-tuning.js"></script>
+  <script src="boards/pico/blueprints/perception.js"></script>
 
   <!-- Top-level wiring -->
   <script src="app.js"></script>
