@@ -421,6 +421,13 @@ body[data-gradient="spotlight"] .chart-card canvas {
     box-shadow       0.3s ease,
     fill             0.3s ease,
     stroke           0.3s ease;
+  /* Teleop arrows fly out from the joystick center to their cardinal
+     positions when the panel mounts. Each direction has its own keyframe
+     so the start offset points the right way. */
+  --anim-teleop-arrow-fwd: teleop-arrow-fwd-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  --anim-teleop-arrow-bck: teleop-arrow-bck-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  --anim-teleop-arrow-lft: teleop-arrow-lft-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  --anim-teleop-arrow-rgt: teleop-arrow-rgt-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 html[data-animations="off"] {
@@ -428,6 +435,10 @@ html[data-animations="off"] {
   --anim-console-dialog:    none;
   --anim-console-outline:   none;
   --anim-theme-transition:  none;
+  --anim-teleop-arrow-fwd:  none;
+  --anim-teleop-arrow-bck:  none;
+  --anim-teleop-arrow-lft:  none;
+  --anim-teleop-arrow-rgt:  none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -436,7 +447,33 @@ html[data-animations="off"] {
     --anim-console-dialog:    none;
     --anim-console-outline:   none;
     --anim-theme-transition:  none;
+    --anim-teleop-arrow-fwd:  none;
+    --anim-teleop-arrow-bck:  none;
+    --anim-teleop-arrow-lft:  none;
+    --anim-teleop-arrow-rgt:  none;
   }
+}
+
+/* Each arrow starts translated toward the joystick center (with a slight
+   scale-down + transparent), then slides + fades + grows to its natural
+   grid position. The 130 px offset is approximately the distance from a
+   button cell's center to the joystick cell's center in the standard
+   3×3 layout — close enough for the "out from center" read. */
+@keyframes teleop-arrow-fwd-in {
+  from { transform: translateY(130px) scale(0.5); opacity: 0; }
+  to   { transform: translateY(0)     scale(1);   opacity: 1; }
+}
+@keyframes teleop-arrow-bck-in {
+  from { transform: translateY(-130px) scale(0.5); opacity: 0; }
+  to   { transform: translateY(0)      scale(1);   opacity: 1; }
+}
+@keyframes teleop-arrow-lft-in {
+  from { transform: translateX(130px) scale(0.5); opacity: 0; }
+  to   { transform: translateX(0)     scale(1);   opacity: 1; }
+}
+@keyframes teleop-arrow-rgt-in {
+  from { transform: translateX(-130px) scale(0.5); opacity: 0; }
+  to   { transform: translateX(0)      scale(1);   opacity: 1; }
 }
 
 /* Theme fade — set briefly by setTheme() in theme.js, then removed after
@@ -938,6 +975,15 @@ body[data-teleop="open"] #teleopPanel {
   text-shadow: 0 0 0 transparent;
   transition: color 0.12s, text-shadow 0.12s, transform 0.05s;
 }
+
+/* Mount-time fly-out animations — one per direction (the from-state
+   translates the arrow toward the joystick center). The `backwards`
+   fill in the registry vars holds the from-state during any animation
+   delay, but here delay is 0 so it's effectively just normal play. */
+.teleop-card[data-teleop-style="grid"] .teleop-btn-fwd   { animation: var(--anim-teleop-arrow-fwd); }
+.teleop-card[data-teleop-style="grid"] .teleop-btn-back  { animation: var(--anim-teleop-arrow-bck); }
+.teleop-card[data-teleop-style="grid"] .teleop-btn-left  { animation: var(--anim-teleop-arrow-lft); }
+.teleop-card[data-teleop-style="grid"] .teleop-btn-right { animation: var(--anim-teleop-arrow-rgt); }
 
 .teleop-card[data-teleop-style="grid"] .teleop-btn:hover:not(.active) {
   color: rgb(var(--accent-rgb, 76, 201, 240));
