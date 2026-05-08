@@ -47,6 +47,76 @@ If you can't use Chromium, you can run the dashboard in any browser by serving i
 
 ---
 
+## Customizing the look
+
+Three orthogonal config axes, all in `config.js`. Edit and reload — they're independent, mix any combination.
+
+```js
+const CONFIG = {
+  theme:        'tetvision',  // surface palette + chart series colors
+  chrome:       'tet',        // panel typography + ornament
+  gradient:     'hatch',      // chart-canvas background fill
+  uiAnimations: true,         // master switch for all UI animations
+};
+```
+
+### Palettes (`theme`)
+
+| ID | Look |
+|---|---|
+| `original` | Dark Material — neutral grays, vibrant accent series |
+| `tetvision` | Pure-black *Oblivion* HUD — cyan series, orange-red alarm |
+| `apple` | macOS Dark — System palette, high contrast |
+| `azure` | Microsoft / GitHub Dark — corporate enterprise tone |
+| `mocha` | Catppuccin Mocha + Tableau 10 — soft, editorial |
+| `gruvbox` | Warm retro — mustard, terracotta, olive on dark |
+| `nord` | Cool arctic — frost blue + pastel auroras |
+| `forest` | Earthy — sage, wheat, dusty rose |
+
+### Chrome (`chrome`)
+
+| ID | Look |
+|---|---|
+| `none` | Standard rounded Material cards |
+| `tet` | TET Vision HUD — 4 corner brackets per card, ALL-CAPS monospace titles with hash-bar prefix and `READOUT.PASS` suffix, sharp corners, hairline borders. Paused state flips brackets to the palette's alarm color and overlays a 135° diagonal hatch on the chart |
+
+### Gradient (`gradient`) — chart canvas background
+
+| ID | Look |
+|---|---|
+| `none` | Flat |
+| `wash` | Top-down fade in accent color |
+| `spotlight` | Bottom-anchored radial bloom (animated rise on load) |
+| `diagonal` | 135° accent fade |
+| `dual` | Top + bottom fade, transparent middle |
+| `hatch` | Diagonal alarm-stripe overlay over a soft accent spotlight |
+
+### Combinations worth trying
+
+- `tetvision` / `tet` / `hatch` — full Oblivion HUD (default)
+- `apple` / `tet` / `spotlight` — clean ops console with TET ornament
+- `azure` / `tet` / `hatch` — enterprise dashboard with alarm stripes
+- `mocha` / `none` / `wash` — soft editorial
+- `forest` / `tet` / `hatch` — vintage CRT
+
+### Live swapping (DevTools)
+
+For testing without reload:
+
+```js
+setTheme('apple');
+document.documentElement.setAttribute('data-chrome', 'tet');
+document.body.setAttribute('data-gradient', 'spotlight');
+```
+
+### Adding a new palette
+
+Two files. In `theme.js`, add an entry to `THEMES` with `series` colors keyed by semantic slot (`cyan`, `pink`, `green`, `amber`, `purple`, `red`). In `style.css`, add an `html[data-theme="ID"]` block defining surface variables (`--bg`, `--card`, `--text`, etc.) — copy any existing block as a template. Add the new ID to the comment listing in `config.js`.
+
+The TET chrome works under any palette, painting brackets in the active palette's `--text-dim` by default. Override `--tet-bracket` inside your palette block to give your theme a signature bracket color (see how `tetvision` overrides it to cyan).
+
+---
+
 ## Three things to remember before extending
 
 If you only take three ideas away from the architecture, take these. Everything below builds on them:
