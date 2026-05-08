@@ -411,20 +411,43 @@ body[data-gradient="spotlight"] .chart-card canvas {
      delay matches console-dialog-in so the spin starts after the pop-in.
      `forwards` holds the rest state after the animation ends. */
   --anim-console-outline: console-outline-spin 2s    cubic-bezier(0.16, 1, 0.3, 1) 0.35s 1 forwards;
+  /* Theme transition — applied only while html.theme-transitioning is set
+     (briefly, by setTheme() in theme.js). Hover/state changes stay instant
+     because the rule's only active during that ~350 ms window. */
+  --anim-theme-transition:
+    background-color 0.3s ease,
+    color            0.3s ease,
+    border-color     0.3s ease,
+    box-shadow       0.3s ease,
+    fill             0.3s ease,
+    stroke           0.3s ease;
 }
 
 html[data-animations="off"] {
-  --anim-spotlight-rise:  none;
-  --anim-console-dialog:  none;
-  --anim-console-outline: none;
+  --anim-spotlight-rise:    none;
+  --anim-console-dialog:    none;
+  --anim-console-outline:   none;
+  --anim-theme-transition:  none;
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --anim-spotlight-rise:  none;
-    --anim-console-dialog:  none;
-    --anim-console-outline: none;
+    --anim-spotlight-rise:    none;
+    --anim-console-dialog:    none;
+    --anim-console-outline:   none;
+    --anim-theme-transition:  none;
   }
+}
+
+/* Theme fade — set briefly by setTheme() in theme.js, then removed after
+   the transition completes so element transitions don't accumulate.
+   Targets *every* element so changes to var()-derived colors fade no
+   matter where they're declared. */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: var(--anim-theme-transition) !important;
 }
 
 body[data-gradient="diagonal"] .chart-card canvas {

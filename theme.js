@@ -185,10 +185,21 @@ function getActiveTheme() {
 function setTheme(id) {
   if (!THEMES[id]) return;
   _activeTheme = THEMES[id];
+  // Brief class window so theme swaps fade in instead of snapping.
+  // Removed after the CSS transition finishes — keeping the class
+  // permanently would also slow down hover/active state changes,
+  // which we want instant. Skipped automatically when uiAnimations
+  // is off (the --anim-theme-transition variable resolves to `none`).
+  document.documentElement.classList.add('theme-transitioning');
   document.documentElement.dataset.theme = id;
   for (const cb of _themeListeners) {
     try { cb(_activeTheme); } catch (e) { console.error(e); }
   }
+  // Match this duration to the longest transition listed in
+  // --anim-theme-transition (currently 0.3s) plus a small buffer.
+  setTimeout(() => {
+    document.documentElement.classList.remove('theme-transitioning');
+  }, 350);
 }
 
 function onThemeChange(cb) {
