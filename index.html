@@ -39,10 +39,15 @@
     <div id="chartGrid"></div>
   </div>
 
-  <!-- Camera dock — right-side panel, lives outside the blueprint viewport so
-       the stream connection persists across Telemetry / PID Tuning swaps.
-       Toggled by the "Camera" pill in the bottombar (body[data-camera]). -->
-  <aside id="cameraPanel" aria-hidden="true"></aside>
+  <!-- Right-side dock — multiple toggleable panels (camera, teleop, ...) live
+       outside the blueprint viewport so their state persists across
+       Telemetry / PID Tuning swaps. Each panel is independently toggled by
+       a pill in the bottombar; the parent dock slides into view if any
+       panel is open. -->
+  <aside id="dockArea">
+    <div id="cameraPanel" class="dock-panel" aria-hidden="true"></div>
+    <div id="teleopPanel" class="dock-panel" aria-hidden="true"></div>
+  </aside>
 
   <nav id="bottomBar">
     <div class="bottombar-spacer"></div>
@@ -50,6 +55,9 @@
     <div class="bottombar-pills">
       <div class="status-pill console-pill" id="cameraPill">
         <span>Camera</span>
+      </div>
+      <div class="status-pill console-pill" id="teleopPill">
+        <span>Teleop</span>
       </div>
       <div class="status-pill console-pill" id="consolePill">
         <span>Serial Console</span>
@@ -81,6 +89,7 @@
   <script src="views/plot.js"></script>
   <script src="views/pid-controls.js"></script>
   <script src="views/vision.js"></script>
+  <script src="views/teleop.js"></script>
 
   <!-- Board manifests + blueprints (each registers itself).
        Add new boards by appending their manifest + blueprint scripts here. -->

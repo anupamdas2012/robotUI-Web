@@ -283,45 +283,70 @@ consoleResizeHandle.addEventListener('pointerup', (e) => {
 });
 
 // -----------------------------------------------------------------------------
-// Camera dock — Vision view mounted outside the viewport so the MJPEG stream
-// connection is independent of which blueprint is active. Toggle pill in the
-// bottombar flips body[data-camera] open / closed; preference persists.
+// Right-side dock — independently toggleable panels (Camera, Teleop, ...)
+// mounted outside the blueprint viewport so their state persists across
+// Telemetry / PID Tuning swaps. Each panel lazy-mounts its view on open
+// and destroys on close (releases ESP32 stream slot, clears any timers).
+// Each pill toggles its own body[data-<key>] attribute and persists the
+// state to localStorage.
 // -----------------------------------------------------------------------------
 
-const cameraPanel = document.getElementById('cameraPanel');
-const cameraPill = document.getElementById('cameraPill');
-let cameraView = null;
+const DOCK_PANELS = [
+  {
+    key: 'camera',
+    bodyAttr: 'data-camera',
+    storageKey: 'cameraOpen',
+    pillId: 'cameraPill',
+    panelId: 'cameraPanel',
+    instance: null,
+    factory: (panel) => new Vision(
+      { type: 'vision', id: 'camera_dock', title: 'Camera' },
+      panel,
+      { connection: source, bus }
+    ),
+  },
+  {
+    key: 'teleop',
+    bodyAttr: 'data-teleop',
+    storageKey: 'teleopOpen',
+    pillId: 'teleopPill',
+    panelId: 'teleopPanel',
+    instance: null,
+    factory: (panel) => new Teleop(
+      { type: 'teleop', id: 'teleop_dock', title: 'Drive' },
+      panel,
+      { connection: source, bus }
+    ),
+  },
+];
 
-function setCameraOpen(open) {
+function setDockOpen(panel, open) {
+  const panelEl = document.getElementById(panel.panelId);
+  const pillEl = document.getElementById(panel.pillId);
   if (open) {
-    document.body.setAttribute('data-camera', 'open');
-    cameraPanel.setAttribute('aria-hidden', 'false');
-    cameraPill.classList.add('active');
-    if (!cameraView) {
-      // Lazy-mount on first open so we don't grab the ESP32's single MJPEG
-      // client slot until the user actually wants to see the feed.
-      cameraView = new Vision(
-        { type: 'vision', id: 'camera_dock', title: 'Camera' },
-        cameraPanel,
-        { connection: source, bus }
-      );
-    }
+    document.body.setAttribute(panel.bodyAttr, 'open');
+    panelEl.setAttribute('aria-hidden', 'false');
+    pillEl.classList.add('active');
+    if (!panel.instance) panel.instance = panel.factory(panelEl);
   } else {
-    document.body.removeAttribute('data-camera');
-    cameraPanel.setAttribute('aria-hidden', 'true');
-    cameraPill.classList.remove('active');
-    if (cameraView) {
-      cameraView.destroy();
-      cameraView = null;
+    document.body.removeAttribute(panel.bodyAttr);
+    panelEl.setAttribute('aria-hidden', 'true');
+    pillEl.classList.remove('active');
+    if (panel.instance) {
+      panel.instance.destroy();
+      panel.instance = null;
     }
   }
-  localStorage.setItem('cameraOpen', open ? '1' : '0');
+  localStorage.setItem(panel.storageKey, open ? '1' : '0');
 }
 
-cameraPill.addEventListener('click', () => {
-  const isOpen = document.body.getAttribute('data-camera') === 'open';
-  setCameraOpen(!isOpen);
-});
+for (const panel of DOCK_PANELS) {
+  const pillEl = document.getElementById(panel.pillId);
+  pillEl.addEventListener('click', () => {
+    const isOpen = document.body.getAttribute(panel.bodyAttr) === 'open';
+    setDockOpen(panel, !isOpen);
+  });
+}
 
 // -----------------------------------------------------------------------------
 // Boot
@@ -332,5 +357,9 @@ wireComponentStatus();
 buildTabs();
 if (activeBlueprintKey) loadBlueprint(activeBlueprintKey);
 
-// Restore camera dock state from last session.
-if (localStorage.getItem('cameraOpen') === '1') setCameraOpen(true);
+// Dock panels start closed every session. Their toggle state is still
+// written to localStorage (in setDockOpen) so persistence is one-line away
+// if we ever want it as opt-in. For now, parity with Serial Console.
+for (const panel of DOCK_PANELS) {
+  localStorage.removeItem(panel.storageKey);
+}

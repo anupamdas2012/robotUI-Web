@@ -627,51 +627,68 @@ button:hover {
   transition: padding-right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* When the camera dock is open, push the chart area left so chartGrid's
-   centering math works without overlap. CAMERA_DOCK_W is the panel's
-   fixed width; mirror any change here in #cameraPanel below. */
-body[data-camera="open"] #telemetryPanel {
-  padding-right: calc(var(--camera-dock-w, 400px) + 16px);
+/* When any dock panel is open, push the chart area left so chartGrid's
+   centering math works without overlap. Width is mirrored on #dockArea. */
+body[data-camera="open"] #telemetryPanel,
+body[data-teleop="open"] #telemetryPanel {
+  padding-right: calc(var(--dock-w, 400px) + 16px);
 }
 
-/* Camera dock — fixed-position right sidebar. Lives outside the viewport,
-   so the MJPEG stream connection persists across blueprint swaps. */
-#cameraPanel {
-  --camera-dock-w: 400px;
+/* Right-side dock — fixed-position column that holds multiple toggleable
+   panels (camera, teleop, ...). Lives outside the blueprint viewport so
+   panel state persists across Telemetry / PID Tuning swaps.
+   Slides in if any contained panel is open; each panel is shown
+   individually via body[data-camera|data-teleop|...]. */
+#dockArea {
+  --dock-w: 400px;
   position: fixed;
   top: 60px;            /* below topbar (matches body padding-top) */
   right: 0;
   bottom: 56px;         /* above bottombar */
-  width: var(--camera-dock-w);
+  width: var(--dock-w);
   background: var(--panel);
   border-left: 1px solid var(--panel-border);
   padding: 12px;
   z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   overflow-y: auto;
   overflow-x: hidden;
   transform: translateX(100%);
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-body[data-camera="open"] #cameraPanel {
+body[data-camera="open"] #dockArea,
+body[data-teleop="open"] #dockArea {
   transform: translateX(0);
 }
 
-/* The vision card already styles itself via .chart-card. Inside the dock,
-   strip the card's outer margin so it fills the panel cleanly. */
-#cameraPanel .chart-card {
+.dock-panel {
+  display: none;
+  flex-shrink: 0;
+}
+
+body[data-camera="open"] #cameraPanel,
+body[data-teleop="open"] #teleopPanel {
+  display: block;
+}
+
+/* Cards inside dock panels fill the panel without their usual outer margin. */
+#dockArea .chart-card {
   margin: 0;
 }
 
-/* On narrow screens the dock would eat the chart area. Hide entirely under
-   1024px — user can still toggle but chart layout reflows fully. */
+/* On narrow screens the dock would eat the chart area. Hide the chart
+   panel entirely below 1024px so the dock can take full width. */
 @media (max-width: 1024px) {
-  body[data-camera="open"] #cameraPanel {
-    transform: translateX(0);
+  body[data-camera="open"] #dockArea,
+  body[data-teleop="open"] #dockArea {
     width: 100%;
     border-left: none;
   }
-  body[data-camera="open"] #telemetryPanel {
+  body[data-camera="open"] #telemetryPanel,
+  body[data-teleop="open"] #telemetryPanel {
     padding-right: 0;
     display: none;
   }
@@ -765,6 +782,127 @@ body[data-camera="open"] #cameraPanel {
 .vision-status[data-state="connecting"] { color: var(--text-muted); }
 .vision-status[data-state="live"]       { color: var(--status-on);  }
 .vision-status[data-state="offline"]    { color: var(--status-off); }
+
+/* Teleop view — 3x3 grid with cardinal buttons + center joystick.
+   Matches chart-card's 320 px slot for visual consistency next to plots.
+   Buttons + joystick scale to fit any container width (dock or chart-grid
+   cell); joystick stays square via aspect-ratio. */
+.teleop-pad {
+  display: grid;
+  grid-template-columns: 56px 1fr 56px;
+  grid-template-rows:    56px 1fr 56px;
+  gap: 12px;
+  padding: 12px;
+  height: 320px;
+  align-items: center;
+  justify-items: center;
+}
+
+.teleop-btn-fwd   { grid-column: 2; grid-row: 1; }
+.teleop-btn-left  { grid-column: 1; grid-row: 2; }
+.teleop-joystick  { grid-column: 2; grid-row: 2; }
+.teleop-btn-right { grid-column: 3; grid-row: 2; }
+.teleop-btn-back  { grid-column: 2; grid-row: 3; }
+
+.teleop-btn {
+  width: 56px;
+  height: 56px;
+  font-size: 1.5rem;
+  background: var(--button-bg);
+  color: var(--text);
+  border: 1px solid var(--button-border);
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.1s, border-color 0.1s, transform 0.05s;
+}
+
+.teleop-btn:hover:not(.active) {
+  background: var(--button-bg-hover);
+}
+
+.teleop-btn.active {
+  background: rgba(var(--accent-rgb, 76, 201, 240), 0.18);
+  border-color: rgba(var(--accent-rgb, 76, 201, 240), 0.65);
+  color: var(--text);
+  transform: scale(0.96);
+}
+
+/* Joystick — circular track + draggable handle. Track sizes fluidly to
+   fit its grid cell while staying square (aspect-ratio: 1). The handle
+   is positioned absolutely at the track center; transform translates it
+   during drag. */
+.teleop-joystick {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.teleop-joy-track {
+  position: relative;
+  /* Fill whichever container dimension is smaller, stay square. */
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--button-bg);
+  border: 1px solid var(--button-border);
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  transition: border-color 0.15s;
+}
+
+.teleop-joy-track.active {
+  cursor: grabbing;
+  border-color: rgba(var(--accent-rgb, 76, 201, 240), 0.7);
+}
+
+.teleop-joy-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb, 76, 201, 240), 0.85);
+  border: 1px solid var(--button-border);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.teleop-joy-track.active .teleop-joy-handle {
+  /* While actively dragging, the JS sets transform every frame — disable
+     the spring transition so the handle tracks the cursor 1:1. */
+  transition: none;
+}
+
+.teleop-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  background: rgba(0, 0, 0, 0.25);
+  user-select: none;
+}
+
+.teleop-status[data-state="idle"]    { color: var(--text-muted); }
+.teleop-status[data-state="driving"] { color: var(--status-on);  }
+.teleop-status[data-state="offline"] { color: var(--status-off); }
 
 .chart-header {
   display: flex;
