@@ -1083,9 +1083,11 @@ body[data-teleop="open"] #teleopPanel {
       calc(-50% + var(--reticle-dy, 0px))
     )
     scale(calc(1 + var(--reticle-deflection, 0) * 3));
+  /* 0.27s = 1.5× the previous 0.18s — 50% more damping on the spring-back
+     so the glow eases home more deliberately when released. */
   transition:
     opacity   var(--anim-reticle-glow, 0.45s) ease-out,
-    transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    transform 0.27s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* During drag: opacity is on (1), transform follows cursor 1:1 (no
@@ -1110,7 +1112,9 @@ body[data-teleop="open"] #teleopPanel {
   border-radius: 0;
   pointer-events: none;
   transform: translate(-50%, -50%);
-  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  /* 0.27s = 50% more damped than the previous 0.18s — slower, more
+     deliberate spring-back to center on release. */
+  transition: transform 0.27s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .teleop-card[data-teleop-style="grid"] .teleop-joy-handle::before,
