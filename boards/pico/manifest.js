@@ -40,7 +40,7 @@ registerBoardManifest({
   ],
 
   // Blueprints this board ships with (registered by their own files).
-  blueprints: ['telemetry', 'pid-tuning', 'perception'],
+  blueprints: ['telemetry', 'pid-tuning'],
 
   // Commands the firmware accepts — exposed for future auto-built command UI.
   commands: {

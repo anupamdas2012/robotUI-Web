@@ -283,6 +283,47 @@ consoleResizeHandle.addEventListener('pointerup', (e) => {
 });
 
 // -----------------------------------------------------------------------------
+// Camera dock — Vision view mounted outside the viewport so the MJPEG stream
+// connection is independent of which blueprint is active. Toggle pill in the
+// bottombar flips body[data-camera] open / closed; preference persists.
+// -----------------------------------------------------------------------------
+
+const cameraPanel = document.getElementById('cameraPanel');
+const cameraPill = document.getElementById('cameraPill');
+let cameraView = null;
+
+function setCameraOpen(open) {
+  if (open) {
+    document.body.setAttribute('data-camera', 'open');
+    cameraPanel.setAttribute('aria-hidden', 'false');
+    cameraPill.classList.add('active');
+    if (!cameraView) {
+      // Lazy-mount on first open so we don't grab the ESP32's single MJPEG
+      // client slot until the user actually wants to see the feed.
+      cameraView = new Vision(
+        { type: 'vision', id: 'camera_dock', title: 'Camera' },
+        cameraPanel,
+        { connection: source, bus }
+      );
+    }
+  } else {
+    document.body.removeAttribute('data-camera');
+    cameraPanel.setAttribute('aria-hidden', 'true');
+    cameraPill.classList.remove('active');
+    if (cameraView) {
+      cameraView.destroy();
+      cameraView = null;
+    }
+  }
+  localStorage.setItem('cameraOpen', open ? '1' : '0');
+}
+
+cameraPill.addEventListener('click', () => {
+  const isOpen = document.body.getAttribute('data-camera') === 'open';
+  setCameraOpen(!isOpen);
+});
+
+// -----------------------------------------------------------------------------
 // Boot
 // -----------------------------------------------------------------------------
 
@@ -290,3 +331,6 @@ buildStatusPills();
 wireComponentStatus();
 buildTabs();
 if (activeBlueprintKey) loadBlueprint(activeBlueprintKey);
+
+// Restore camera dock state from last session.
+if (localStorage.getItem('cameraOpen') === '1') setCameraOpen(true);

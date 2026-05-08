@@ -39,10 +39,18 @@
     <div id="chartGrid"></div>
   </div>
 
+  <!-- Camera dock — right-side panel, lives outside the blueprint viewport so
+       the stream connection persists across Telemetry / PID Tuning swaps.
+       Toggled by the "Camera" pill in the bottombar (body[data-camera]). -->
+  <aside id="cameraPanel" aria-hidden="true"></aside>
+
   <nav id="bottomBar">
     <div class="bottombar-spacer"></div>
     <div class="tab-switcher" id="tabSwitcher"></div>
     <div class="bottombar-pills">
+      <div class="status-pill console-pill" id="cameraPill">
+        <span>Camera</span>
+      </div>
       <div class="status-pill console-pill" id="consolePill">
         <span>Serial Console</span>
       </div>
@@ -79,7 +87,6 @@
   <script src="boards/pico/manifest.js"></script>
   <script src="boards/pico/blueprints/telemetry.js"></script>
   <script src="boards/pico/blueprints/pid-tuning.js"></script>
-  <script src="boards/pico/blueprints/perception.js"></script>
 
   <!-- Top-level wiring -->
   <script src="app.js"></script>
