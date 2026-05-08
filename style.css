@@ -639,20 +639,29 @@ body[data-teleop="open"] #telemetryPanel {
    panel state persists across Telemetry / PID Tuning swaps.
    Slides in if any contained panel is open; each panel is shown
    individually via body[data-camera|data-teleop|...]. */
+/* Vertical extents match the chart grid's visible top/bottom edges:
+     top    = body padding-top (60) + chartGrid margin-top    (24) = 84
+     bottom = body padding-bottom (56) + chartGrid margin-bottom (16) = 72
+   …and gap matches the chart grid's gap (16) so dock cards sit on the
+   same horizontal grid lines as chart rows. Cards have the same total
+   height (~390 px) because all of .chart-card canvas, .vision-frame,
+   and .teleop-pad use the same 320 px content slot. */
 #dockArea {
   --dock-w: 400px;
   position: fixed;
-  top: 60px;            /* below topbar (matches body padding-top) */
+  top: 84px;
   right: 0;
-  bottom: 56px;         /* above bottombar */
+  bottom: 72px;
   width: var(--dock-w);
   background: transparent;
   border-left: 1px solid var(--panel-border);
-  padding: 12px;
+  padding: 0 12px 0 12px;     /* horizontal breathing room only — no vertical
+                                  padding so the first card's top edge sits at
+                                  the dock's top edge, aligning with chartGrid */
   z-index: 50;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   overflow-y: auto;
   overflow-x: hidden;
   transform: translateX(100%);
