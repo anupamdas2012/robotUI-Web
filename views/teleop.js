@@ -83,10 +83,17 @@ class Teleop {
     const track = document.createElement('div');
     track.className = 'teleop-joy-track';
 
+    // Reticle glow — radial gradient that follows the handle position via
+    // CSS vars (--reticle-dx / --reticle-dy on the track). Sibling of the
+    // handle so the crosshair lines render on top of the glow.
+    const glow = document.createElement('div');
+    glow.className = 'teleop-joy-glow';
+    track.appendChild(glow);
+
     const handle = document.createElement('div');
     handle.className = 'teleop-joy-handle';
-
     track.appendChild(handle);
+
     joy.appendChild(track);
 
     pad.appendChild(this.btnFwd);
@@ -185,6 +192,13 @@ class Teleop {
 
     // Move the visual handle.
     this.joyHandle.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    // Mirror onto the track as CSS vars so the reticle glow can follow:
+    // dx/dy = position offset; deflection = 0 at center, 1 at edge — the
+    // glow's CSS uses it to grow its radius proportionally.
+    this.joyTrack.style.setProperty('--reticle-dx', `${dx}px`);
+    this.joyTrack.style.setProperty('--reticle-dy', `${dy}px`);
+    const deflection = Math.min(1, Math.hypot(dx, dy) / r);
+    this.joyTrack.style.setProperty('--reticle-deflection', String(deflection));
 
     // Normalize to [-1, 1] and convert to wheel speeds.
     const nx = dx / r;
@@ -204,8 +218,11 @@ class Teleop {
     this._joystickActive = false;
     this._joystickPointerId = null;
     this.joyTrack.classList.remove('active');
-    // Spring the handle back to center.
+    // Spring the handle (and mirrored glow vars) back to center.
     this.joyHandle.style.transform = 'translate(-50%, -50%)';
+    this.joyTrack.style.setProperty('--reticle-dx', '0px');
+    this.joyTrack.style.setProperty('--reticle-dy', '0px');
+    this.joyTrack.style.setProperty('--reticle-deflection', '0');
     this._unlatch();
   }
 
