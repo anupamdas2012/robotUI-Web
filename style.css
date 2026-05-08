@@ -927,6 +927,10 @@ body[data-teleop="open"] #teleopPanel {
   aspect-ratio: 1;
   user-select: none;
   touch-action: none;
+  /* Keep the reticle glow contained within the square outline — without
+     this, the radial halo bleeds past the track edges (it's only clipped
+     by the joystick container, which is larger). */
+  overflow: hidden;
 }
 
 .teleop-joy-track.active .teleop-joy-handle {
