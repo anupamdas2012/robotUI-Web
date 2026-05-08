@@ -887,8 +887,11 @@ body[data-teleop="open"] #teleopPanel {
    cell); joystick stays square via aspect-ratio. */
 .teleop-pad {
   display: grid;
-  grid-template-columns: 56px 1fr 56px;
-  grid-template-rows:    56px 1fr 56px;
+  /* Smaller button cells (32 px) give the central joystick cell ~30%
+     more room in both axes, so the reticle square grows from ~160 px
+     to ~208 px without the pad changing its overall 320 px slot. */
+  grid-template-columns: 32px 1fr 32px;
+  grid-template-rows:    32px 1fr 32px;
   gap: 12px;
   padding: 12px;
   height: 320px;
@@ -917,8 +920,10 @@ body[data-teleop="open"] #teleopPanel {
   position: relative;
   height: 100%;
   width: auto;
-  max-width: 100%;
-  max-height: 100%;
+  /* 90% caps shrink the reticle square ~10% from its previous fully-
+     filled state, leaving a small inset around the grid. */
+  max-width: 90%;
+  max-height: 90%;
   aspect-ratio: 1;
   user-select: none;
   touch-action: none;
@@ -960,11 +965,12 @@ body[data-teleop="open"] #teleopPanel {
    ========================================================================== */
 
 /* Buttons — bare glyphs, no box. The arrow itself dims/brightens on
-   hover/active, with a cyan text-shadow glow on press. */
+   hover/active, with a cyan text-shadow glow on press. Sized to the
+   32 px grid-template cells in .teleop-pad. */
 .teleop-card[data-teleop-style="grid"] .teleop-btn {
-  width: 56px;
-  height: 56px;
-  font-size: 1.6rem;
+  width: 32px;
+  height: 32px;
+  font-size: 1.5rem;
   background: transparent;
   color: var(--text-dim);
   border: none;
