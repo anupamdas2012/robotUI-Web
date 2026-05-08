@@ -654,7 +654,8 @@ body[data-teleop="open"] #telemetryPanel {
   bottom: 72px;
   width: var(--dock-w);
   background: transparent;
-  border-left: 1px solid var(--panel-border);
+  /* Divider line is drawn separately (centered in the gap), not as the
+     dock's own border. See body[data-*]::before below. */
   padding: 0 12px 0 12px;     /* horizontal breathing room only — no vertical
                                   padding so the first card's top edge sits at
                                   the dock's top edge, aligning with chartGrid */
@@ -673,6 +674,24 @@ body[data-teleop="open"] #dockArea {
   transform: translateX(0);
 }
 
+/* Divider line — centered in the 16 px gap between the chart area and the
+   dock. Drawn as a fixed-position pseudo-element on body so it spans the
+   chart grid's exact vertical extent (84 px from top, 72 px from bottom).
+   right: dock-width (400) + half-gap (8) = 408 puts the line in the middle
+   of the gap rather than at one edge. */
+body[data-camera="open"]::before,
+body[data-teleop="open"]::before {
+  content: '';
+  position: fixed;
+  top: 84px;
+  bottom: 72px;
+  right: 408px;
+  width: 1px;
+  background: var(--panel-border);
+  z-index: 49;
+  pointer-events: none;
+}
+
 .dock-panel {
   display: none;
   flex-shrink: 0;
@@ -689,7 +708,8 @@ body[data-teleop="open"] #teleopPanel {
 }
 
 /* On narrow screens the dock would eat the chart area. Hide the chart
-   panel entirely below 1024px so the dock can take full width. */
+   panel entirely below 1024px so the dock can take full width. The
+   centered-gap divider doesn't apply in this stacked layout. */
 @media (max-width: 1024px) {
   body[data-camera="open"] #dockArea,
   body[data-teleop="open"] #dockArea {
@@ -699,6 +719,10 @@ body[data-teleop="open"] #teleopPanel {
   body[data-camera="open"] #telemetryPanel,
   body[data-teleop="open"] #telemetryPanel {
     padding-right: 0;
+    display: none;
+  }
+  body[data-camera="open"]::before,
+  body[data-teleop="open"]::before {
     display: none;
   }
 }
