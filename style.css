@@ -411,20 +411,85 @@ body[data-gradient="spotlight"] .chart-card canvas {
      delay matches console-dialog-in so the spin starts after the pop-in.
      `forwards` holds the rest state after the animation ends. */
   --anim-console-outline: console-outline-spin 2s    cubic-bezier(0.16, 1, 0.3, 1) 0.35s 1 forwards;
+  /* Theme transition — applied only while html.theme-transitioning is set
+     (briefly, by setTheme() in theme.js). Hover/state changes stay instant
+     because the rule's only active during that ~350 ms window. */
+  --anim-theme-transition:
+    background-color 0.3s ease,
+    color            0.3s ease,
+    border-color     0.3s ease,
+    box-shadow       0.3s ease,
+    fill             0.3s ease,
+    stroke           0.3s ease;
+  /* Teleop arrows fly out from the joystick center to their cardinal
+     positions when the panel mounts. Each direction has its own keyframe
+     so the start offset points the right way. */
+  --anim-teleop-arrow-fwd: teleop-arrow-fwd-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  --anim-teleop-arrow-bck: teleop-arrow-bck-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  --anim-teleop-arrow-lft: teleop-arrow-lft-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  --anim-teleop-arrow-rgt: teleop-arrow-rgt-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  /* Reticle glow fade — duration component only (opacity transition).
+     Set to 0s when uiAnimations is off so it snaps in/out. */
+  --anim-reticle-glow:     0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html[data-animations="off"] {
-  --anim-spotlight-rise:  none;
-  --anim-console-dialog:  none;
-  --anim-console-outline: none;
+  --anim-spotlight-rise:    none;
+  --anim-console-dialog:    none;
+  --anim-console-outline:   none;
+  --anim-theme-transition:  none;
+  --anim-teleop-arrow-fwd:  none;
+  --anim-teleop-arrow-bck:  none;
+  --anim-teleop-arrow-lft:  none;
+  --anim-teleop-arrow-rgt:  none;
+  --anim-reticle-glow:      0s;
 }
 
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --anim-spotlight-rise:  none;
-    --anim-console-dialog:  none;
-    --anim-console-outline: none;
+    --anim-spotlight-rise:    none;
+    --anim-console-dialog:    none;
+    --anim-console-outline:   none;
+    --anim-theme-transition:  none;
+    --anim-teleop-arrow-fwd:  none;
+    --anim-teleop-arrow-bck:  none;
+    --anim-teleop-arrow-lft:  none;
+    --anim-teleop-arrow-rgt:  none;
+    --anim-reticle-glow:      0s;
   }
+}
+
+/* Each arrow starts translated toward the joystick center (with a slight
+   scale-down + transparent), then slides + fades + grows to its natural
+   grid position. The 130 px offset is approximately the distance from a
+   button cell's center to the joystick cell's center in the standard
+   3×3 layout — close enough for the "out from center" read. */
+@keyframes teleop-arrow-fwd-in {
+  from { transform: translateY(130px) scale(0.5); opacity: 0; }
+  to   { transform: translateY(0)     scale(1);   opacity: 1; }
+}
+@keyframes teleop-arrow-bck-in {
+  from { transform: translateY(-130px) scale(0.5); opacity: 0; }
+  to   { transform: translateY(0)      scale(1);   opacity: 1; }
+}
+@keyframes teleop-arrow-lft-in {
+  from { transform: translateX(130px) scale(0.5); opacity: 0; }
+  to   { transform: translateX(0)     scale(1);   opacity: 1; }
+}
+@keyframes teleop-arrow-rgt-in {
+  from { transform: translateX(-130px) scale(0.5); opacity: 0; }
+  to   { transform: translateX(0)      scale(1);   opacity: 1; }
+}
+
+/* Theme fade — set briefly by setTheme() in theme.js, then removed after
+   the transition completes so element transitions don't accumulate.
+   Targets *every* element so changes to var()-derived colors fade no
+   matter where they're declared. */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: var(--anim-theme-transition) !important;
 }
 
 body[data-gradient="diagonal"] .chart-card canvas {
@@ -624,7 +689,109 @@ button:hover {
    background with no nested-card wrapper. */
 #telemetryPanel {
   overflow: visible;
+  transition: padding-right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* When any dock panel is open, push the chart area left so chartGrid's
+   centering math works without overlap. Width is mirrored on #dockArea. */
+body[data-camera="open"] #telemetryPanel,
+body[data-teleop="open"] #telemetryPanel {
+  padding-right: calc(var(--dock-w, 400px) + 16px);
+}
+
+/* Right-side dock — fixed-position column that holds multiple toggleable
+   panels (camera, teleop, ...). Lives outside the blueprint viewport so
+   panel state persists across Telemetry / PID Tuning swaps.
+   Slides in if any contained panel is open; each panel is shown
+   individually via body[data-camera|data-teleop|...]. */
+/* Vertical extents match the chart grid's visible top/bottom edges:
+     top    = body padding-top (60) + chartGrid margin-top    (24) = 84
+     bottom = body padding-bottom (56) + chartGrid margin-bottom (16) = 72
+   …and gap matches the chart grid's gap (16) so dock cards sit on the
+   same horizontal grid lines as chart rows. Cards have the same total
+   height (~390 px) because all of .chart-card canvas, .vision-frame,
+   and .teleop-pad use the same 320 px content slot. */
+#dockArea {
+  --dock-w: 400px;
+  position: fixed;
+  top: 84px;
+  right: 0;
+  bottom: 72px;
+  width: var(--dock-w);
+  background: transparent;
+  /* Divider line is drawn separately (centered in the gap), not as the
+     dock's own border. See body[data-*]::before below. */
+  padding: 0 12px 0 12px;     /* horizontal breathing room only — no vertical
+                                  padding so the first card's top edge sits at
+                                  the dock's top edge, aligning with chartGrid */
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body[data-camera="open"] #dockArea,
+body[data-teleop="open"] #dockArea {
+  transform: translateX(0);
+}
+
+/* Divider line — centered in the 16 px gap between the chart area and the
+   dock. Drawn as a fixed-position pseudo-element on body so it spans the
+   chart grid's exact vertical extent (84 px from top, 72 px from bottom).
+   right: dock-width (400) + half-gap (8) = 408 puts the line in the middle
+   of the gap rather than at one edge. */
+body[data-camera="open"]::before,
+body[data-teleop="open"]::before {
+  content: '';
+  position: fixed;
+  top: 84px;
+  bottom: 72px;
+  right: 408px;
+  width: 1px;
+  background: var(--panel-border);
+  z-index: 49;
+  pointer-events: none;
+}
+
+.dock-panel {
+  display: none;
+  flex-shrink: 0;
+}
+
+body[data-camera="open"] #cameraPanel,
+body[data-teleop="open"] #teleopPanel {
+  display: block;
+}
+
+/* Cards inside dock panels fill the panel without their usual outer margin. */
+#dockArea .chart-card {
+  margin: 0;
+}
+
+/* On narrow screens the dock would eat the chart area. Hide the chart
+   panel entirely below 1024px so the dock can take full width. The
+   centered-gap divider doesn't apply in this stacked layout. */
+@media (max-width: 1024px) {
+  body[data-camera="open"] #dockArea,
+  body[data-teleop="open"] #dockArea {
+    width: 100%;
+    border-left: none;
+  }
+  body[data-camera="open"] #telemetryPanel,
+  body[data-teleop="open"] #telemetryPanel {
+    padding-right: 0;
+    display: none;
+  }
+  body[data-camera="open"]::before,
+  body[data-teleop="open"]::before {
+    display: none;
+  }
+}
+
 
 /* Chart grid */
 #chartGrid {
@@ -675,6 +842,305 @@ button:hover {
 
 .chart-card.paused canvas:active {
   cursor: grabbing;
+}
+
+/* Vision view — MJPEG stream container. Matches the canvas's 320px slot so a
+   vision card sits naturally next to chart cards. Black letterbox lets any
+   stream aspect (240x240, VGA, etc.) render via object-fit: contain. */
+.vision-frame {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.vision-stream {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.vision-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  background: rgba(0, 0, 0, 0.25);
+  user-select: none;
+}
+
+.vision-status[data-state="connecting"] { color: var(--text-muted); }
+.vision-status[data-state="live"]       { color: var(--status-on);  }
+.vision-status[data-state="offline"]    { color: var(--status-off); }
+
+/* Teleop view — 3x3 grid with cardinal buttons + center joystick.
+   Matches chart-card's 320 px slot for visual consistency next to plots.
+   Buttons + joystick scale to fit any container width (dock or chart-grid
+   cell); joystick stays square via aspect-ratio. */
+.teleop-pad {
+  display: grid;
+  /* Smaller button cells (32 px) give the central joystick cell ~30%
+     more room in both axes, so the reticle square grows from ~160 px
+     to ~208 px without the pad changing its overall 320 px slot. */
+  grid-template-columns: 32px 1fr 32px;
+  grid-template-rows:    32px 1fr 32px;
+  gap: 12px;
+  padding: 12px;
+  height: 320px;
+  align-items: center;
+  justify-items: center;
+}
+
+.teleop-btn-fwd   { grid-column: 2; grid-row: 1; }
+.teleop-btn-left  { grid-column: 1; grid-row: 2; }
+.teleop-joystick  { grid-column: 2; grid-row: 2; }
+.teleop-btn-right { grid-column: 3; grid-row: 2; }
+.teleop-btn-back  { grid-column: 2; grid-row: 3; }
+
+/* Joystick container — center the track inside its grid cell. */
+.teleop-joystick {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.teleop-joy-track {
+  position: relative;
+  height: 100%;
+  width: auto;
+  /* 90% caps shrink the reticle square ~10% from its previous fully-
+     filled state, leaving a small inset around the grid. */
+  max-width: 90%;
+  max-height: 90%;
+  aspect-ratio: 1;
+  user-select: none;
+  touch-action: none;
+  /* Keep the reticle glow contained within the square outline — without
+     this, the radial halo bleeds past the track edges (it's only clipped
+     by the joystick container, which is larger). */
+  overflow: hidden;
+}
+
+.teleop-joy-track.active .teleop-joy-handle {
+  /* While dragging, JS sets transform every frame — disable the spring
+     transition so the handle tracks the cursor 1:1. */
+  transition: none;
+}
+
+/* TET-style status chip — monospace, ALL-CAPS feel, hairline outline. */
+.teleop-status {
+  display: inline-block;
+  padding: 2px 10px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(var(--accent-rgb, 76, 201, 240), 0.18);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.teleop-status[data-state="idle"]    { color: var(--text-muted); }
+.teleop-status[data-state="driving"] {
+  color: rgb(var(--accent-rgb, 76, 201, 240));
+  border-color: rgba(var(--accent-rgb, 76, 201, 240), 0.5);
+  box-shadow: 0 0 6px rgba(var(--accent-rgb, 76, 201, 240), 0.18);
+}
+.teleop-status[data-state="offline"] { color: var(--status-off); border-color: rgba(255, 90, 58, 0.4); }
+
+/* ==========================================================================
+   Style variant: GRID
+   Oscilloscope / coordinate-plotter aesthetic. Square joystick track with
+   a hairline grid pattern; crosshair handle (no fill); buttons reduced to
+   hairline outlines that light up on press.
+   ========================================================================== */
+
+/* Buttons — bare glyphs, no box. The arrow itself dims/brightens on
+   hover/active, with a cyan text-shadow glow on press. Sized to the
+   32 px grid-template cells in .teleop-pad. */
+.teleop-card[data-teleop-style="grid"] .teleop-btn {
+  width: 32px;
+  height: 32px;
+  font-size: 1.5rem;
+  background: transparent;
+  color: var(--text-dim);
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  text-shadow: 0 0 0 transparent;
+  transition: color 0.12s, text-shadow 0.12s, transform 0.05s;
+}
+
+/* Mount-time fly-out animations — one per direction (the from-state
+   translates the arrow toward the joystick center). The `backwards`
+   fill in the registry vars holds the from-state during any animation
+   delay, but here delay is 0 so it's effectively just normal play. */
+.teleop-card[data-teleop-style="grid"] .teleop-btn-fwd   { animation: var(--anim-teleop-arrow-fwd); }
+.teleop-card[data-teleop-style="grid"] .teleop-btn-back  { animation: var(--anim-teleop-arrow-bck); }
+.teleop-card[data-teleop-style="grid"] .teleop-btn-left  { animation: var(--anim-teleop-arrow-lft); }
+.teleop-card[data-teleop-style="grid"] .teleop-btn-right { animation: var(--anim-teleop-arrow-rgt); }
+
+.teleop-card[data-teleop-style="grid"] .teleop-btn:hover:not(.active) {
+  color: rgb(var(--accent-rgb, 76, 201, 240));
+  text-shadow:
+    0 0 6px rgba(var(--accent-rgb, 76, 201, 240), 0.65),
+    0 0 12px rgba(var(--accent-rgb, 76, 201, 240), 0.30);
+  transform: scale(1.18);
+}
+
+.teleop-card[data-teleop-style="grid"] .teleop-btn.active {
+  color: rgb(var(--accent-rgb, 76, 201, 240));
+  text-shadow:
+    0 0 8px rgba(var(--accent-rgb, 76, 201, 240), 0.95),
+    0 0 16px rgba(var(--accent-rgb, 76, 201, 240), 0.55),
+    0 0 24px rgba(var(--accent-rgb, 76, 201, 240), 0.25);
+  transform: scale(1.22);
+}
+
+/* Square track with a hairline coordinate grid. Two layers stacked:
+     - light grid: a 1 px line every 1/3 of the track
+     - axis lines: brighter 1 px lines at the centerline (X=0 and Y=0)
+   Sharp corners — no border-radius. */
+.teleop-card[data-teleop-style="grid"] .teleop-joy-track {
+  border-radius: 0;
+  background-color: transparent;
+  background-image:
+    /* fine grid */
+    linear-gradient(to right, rgba(var(--accent-rgb, 76, 201, 240), 0.18) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(var(--accent-rgb, 76, 201, 240), 0.18) 1px, transparent 1px),
+    /* axis lines (brighter) at exact center */
+    linear-gradient(to right,
+      transparent calc(50% - 0.5px),
+      rgba(var(--accent-rgb, 76, 201, 240), 0.5) calc(50% - 0.5px),
+      rgba(var(--accent-rgb, 76, 201, 240), 0.5) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)),
+    linear-gradient(to bottom,
+      transparent calc(50% - 0.5px),
+      rgba(var(--accent-rgb, 76, 201, 240), 0.5) calc(50% - 0.5px),
+      rgba(var(--accent-rgb, 76, 201, 240), 0.5) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px));
+  background-size: 33.333% 33.333%, 33.333% 33.333%, 100% 100%, 100% 100%;
+  background-repeat: repeat, repeat, no-repeat, no-repeat;
+  border: 1px solid rgba(var(--accent-rgb, 76, 201, 240), 0.45);
+  cursor: crosshair;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.teleop-card[data-teleop-style="grid"] .teleop-joy-track.active {
+  border-color: rgba(var(--accent-rgb, 76, 201, 240), 0.85);
+  box-shadow: 0 0 10px rgba(var(--accent-rgb, 76, 201, 240), 0.2),
+              inset 0 0 12px rgba(var(--accent-rgb, 76, 201, 240), 0.06);
+}
+
+/* Reticle glow — soft radial gradient that follows the handle position
+   via CSS vars (--reticle-dx / --reticle-dy on the parent track, set by
+   teleop.js on each pointermove). Fades up on press, fades down on
+   release. Sibling of the handle so the crosshair lines render on top.
+   Position transitions are disabled during drag so the glow tracks the
+   cursor 1:1; opacity transition uses the registered fade duration. */
+.teleop-card[data-teleop-style="grid"] .teleop-joy-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40%;
+  height: 40%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(var(--accent-rgb, 76, 201, 240), 0.25) 0%,
+    rgba(var(--accent-rgb, 76, 201, 240), 0.10) 35%,
+    transparent 70%
+  );
+  pointer-events: none;
+  opacity: 0;
+  /* translate = follows the cursor; scale = grows with deflection (0..1).
+     1 + 3 * deflection: 1.0× at center, 4.0× at the edge — dramatic
+     blooming halo as the reticle reaches the limits. Overflow beyond
+     the track is clipped by .teleop-joystick's overflow: hidden. */
+  transform:
+    translate(
+      calc(-50% + var(--reticle-dx, 0px)),
+      calc(-50% + var(--reticle-dy, 0px))
+    )
+    scale(calc(1 + var(--reticle-deflection, 0) * 3));
+  /* 0.27s = 1.5× the previous 0.18s — 50% more damping on the spring-back
+     so the glow eases home more deliberately when released. */
+  transition:
+    opacity   var(--anim-reticle-glow, 0.45s) ease-out,
+    transform 0.27s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* During drag: opacity is on (1), transform follows cursor 1:1 (no
+   transition so the glow doesn't lag behind the reticle). */
+.teleop-card[data-teleop-style="grid"] .teleop-joy-track.active .teleop-joy-glow {
+  opacity: 1;
+  transition: opacity var(--anim-reticle-glow, 0.45s) ease-out;
+}
+
+/* Crosshair handle — two thin perpendicular bars (+) instead of a filled
+   disc. Drawn via pseudo-elements so we can keep the JS-driven transform
+   on .teleop-joy-handle untouched. Slightly bigger when active for a
+   gentle "engaged" affordance. */
+.teleop-card[data-teleop-style="grid"] .teleop-joy-handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  /* 0.27s = 50% more damped than the previous 0.18s — slower, more
+     deliberate spring-back to center on release. */
+  transition: transform 0.27s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.teleop-card[data-teleop-style="grid"] .teleop-joy-handle::before,
+.teleop-card[data-teleop-style="grid"] .teleop-joy-handle::after {
+  content: '';
+  position: absolute;
+  background: rgb(var(--accent-rgb, 76, 201, 240));
+  box-shadow: 0 0 5px rgba(var(--accent-rgb, 76, 201, 240), 0.7);
+}
+
+/* horizontal arm */
+.teleop-card[data-teleop-style="grid"] .teleop-joy-handle::before {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+/* vertical arm */
+.teleop-card[data-teleop-style="grid"] .teleop-joy-handle::after {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
 }
 
 .chart-header {
@@ -780,9 +1246,22 @@ button:hover {
   justify-self: end;
 }
 
-.bottombar-spacer {
-  /* placeholder for grid balance + any future bottom-left content */
+.bottombar-pills-left {
   justify-self: start;
+}
+
+/* Theme toggle — small icon-only pill, leftmost in the bottombar.
+   Click to flip between tetvision (dark) and tetlight (light). */
+.theme-toggle-pill {
+  cursor: pointer;
+  user-select: none;
+  padding: 5px 10px;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.theme-toggle-pill:hover {
+  background: var(--button-bg-hover);
 }
 
 .console-pill {

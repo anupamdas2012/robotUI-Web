@@ -283,6 +283,98 @@ consoleResizeHandle.addEventListener('pointerup', (e) => {
 });
 
 // -----------------------------------------------------------------------------
+// Right-side dock — independently toggleable panels (Camera, Teleop, ...)
+// mounted outside the blueprint viewport so their state persists across
+// Telemetry / PID Tuning swaps. Each panel lazy-mounts its view on open
+// and destroys on close (releases ESP32 stream slot, clears any timers).
+// Each pill toggles its own body[data-<key>] attribute and persists the
+// state to localStorage.
+// -----------------------------------------------------------------------------
+
+const DOCK_PANELS = [
+  {
+    key: 'camera',
+    bodyAttr: 'data-camera',
+    storageKey: 'cameraOpen',
+    pillId: 'cameraPill',
+    panelId: 'cameraPanel',
+    instance: null,
+    factory: (panel) => new Vision(
+      { type: 'vision', id: 'camera_dock', title: 'Camera' },
+      panel,
+      { connection: source, bus }
+    ),
+  },
+  {
+    key: 'teleop',
+    bodyAttr: 'data-teleop',
+    storageKey: 'teleopOpen',
+    pillId: 'teleopPill',
+    panelId: 'teleopPanel',
+    instance: null,
+    factory: (panel) => new Teleop(
+      { type: 'teleop', id: 'teleop_dock', title: 'Drive' },
+      panel,
+      { connection: source, bus }
+    ),
+  },
+];
+
+function setDockOpen(panel, open) {
+  const panelEl = document.getElementById(panel.panelId);
+  const pillEl = document.getElementById(panel.pillId);
+  if (open) {
+    document.body.setAttribute(panel.bodyAttr, 'open');
+    panelEl.setAttribute('aria-hidden', 'false');
+    pillEl.classList.add('active');
+    if (!panel.instance) panel.instance = panel.factory(panelEl);
+  } else {
+    document.body.removeAttribute(panel.bodyAttr);
+    panelEl.setAttribute('aria-hidden', 'true');
+    pillEl.classList.remove('active');
+    if (panel.instance) {
+      panel.instance.destroy();
+      panel.instance = null;
+    }
+  }
+  localStorage.setItem(panel.storageKey, open ? '1' : '0');
+}
+
+for (const panel of DOCK_PANELS) {
+  const pillEl = document.getElementById(panel.pillId);
+  pillEl.addEventListener('click', () => {
+    const isOpen = document.body.getAttribute(panel.bodyAttr) === 'open';
+    setDockOpen(panel, !isOpen);
+  });
+}
+
+// -----------------------------------------------------------------------------
+// Theme toggle pill — flips between tetvision (dark) and tetlight (light).
+// Icon shows what you'll switch TO on click (sun = light, moon = dark).
+// Session-only; reload returns to CONFIG.theme.
+// -----------------------------------------------------------------------------
+
+const themeTogglePill = document.getElementById('themeTogglePill');
+const themeToggleIcon = document.getElementById('themeToggleIcon');
+
+function updateThemeToggleIcon() {
+  if (!themeToggleIcon) return;
+  const cur = (typeof getActiveTheme === 'function') ? getActiveTheme().id : '';
+  // On tetvision (dark) → next click goes light → show sun.
+  // Otherwise → next click goes dark → show moon.
+  themeToggleIcon.textContent = cur === 'tetvision' ? '☀' : '☾';
+}
+
+themeTogglePill.addEventListener('click', () => {
+  const cur = getActiveTheme().id;
+  const next = cur === 'tetvision' ? 'tetlight' : 'tetvision';
+  setTheme(next);
+  updateThemeToggleIcon();
+});
+
+updateThemeToggleIcon();
+
+// -----------------------------------------------------------------------------
 // Boot
 // -----------------------------------------------------------------------------
 
@@ -290,3 +382,10 @@ buildStatusPills();
 wireComponentStatus();
 buildTabs();
 if (activeBlueprintKey) loadBlueprint(activeBlueprintKey);
+
+// Dock panels start closed every session. Their toggle state is still
+// written to localStorage (in setDockOpen) so persistence is one-line away
+// if we ever want it as opt-in. For now, parity with Serial Console.
+for (const panel of DOCK_PANELS) {
+  localStorage.removeItem(panel.storageKey);
+}

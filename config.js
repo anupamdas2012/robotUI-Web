@@ -20,10 +20,15 @@
 //
 // uiAnimations: master switch for all UI animations (gradient rise, dialog
 //               pop-in, etc.). Set false to make everything snap into place.
+//
+// cameraStreamUrl: MJPEG stream from the robot's ESP32 brain. Used by the
+//               Vision blueprint. The ESP32 prints its IP to serial on boot;
+//               update this when the WiFi network (or static-IP slot) changes.
 
 const CONFIG = {
-  theme:        'tetvision',
-  chrome:       'tet',
-  gradient:     'hatch',
-  uiAnimations: true,
+  theme:           'tetvision',
+  chrome:          'tet',
+  gradient:        'hatch',
+  uiAnimations:    true,
+  cameraStreamUrl: 'http://192.168.1.220:81/stream',
 };

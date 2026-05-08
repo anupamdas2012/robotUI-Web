@@ -39,10 +39,31 @@
     <div id="chartGrid"></div>
   </div>
 
+  <!-- Right-side dock — multiple toggleable panels (camera, teleop, ...) live
+       outside the blueprint viewport so their state persists across
+       Telemetry / PID Tuning swaps. Each panel is independently toggled by
+       a pill in the bottombar; the parent dock slides into view if any
+       panel is open. -->
+  <aside id="dockArea">
+    <div id="cameraPanel" class="dock-panel" aria-hidden="true"></div>
+    <div id="teleopPanel" class="dock-panel" aria-hidden="true"></div>
+  </aside>
+
   <nav id="bottomBar">
-    <div class="bottombar-spacer"></div>
+    <div class="bottombar-pills bottombar-pills-left">
+      <div class="status-pill theme-toggle-pill" id="themeTogglePill"
+           title="Toggle TET dark / light">
+        <span id="themeToggleIcon">☀</span>
+      </div>
+    </div>
     <div class="tab-switcher" id="tabSwitcher"></div>
     <div class="bottombar-pills">
+      <div class="status-pill console-pill" id="cameraPill">
+        <span>Camera</span>
+      </div>
+      <div class="status-pill console-pill" id="teleopPill">
+        <span>Teleop</span>
+      </div>
       <div class="status-pill console-pill" id="consolePill">
         <span>Serial Console</span>
       </div>
@@ -72,6 +93,8 @@
   <!-- View classes (each registers itself with the view registry) -->
   <script src="views/plot.js"></script>
   <script src="views/pid-controls.js"></script>
+  <script src="views/vision.js"></script>
+  <script src="views/teleop.js"></script>
 
   <!-- Board manifests + blueprints (each registers itself).
        Add new boards by appending their manifest + blueprint scripts here. -->
